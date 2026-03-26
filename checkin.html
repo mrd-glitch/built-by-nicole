@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Check-In | Built By Nicole Marie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --coal: #1A1108;
+      --fire: #E8420A;
+      --bone: #F5F0EB;
+      --ash: #BDB5AC;
+      --dark-panel: #231A0F;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--coal);
+      color: var(--bone);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
+
+    a { color: var(--fire); text-decoration: none; }
+
+    /* NAV */
+    nav {
+      background: rgba(26, 17, 8, 0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(232, 66, 10, 0.15);
+      padding: 16px 0;
+    }
+    nav .container { display: flex; justify-content: space-between; align-items: center; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--bone); }
+    .logo span { color: var(--fire); }
+    nav a.nav-link { color: var(--ash); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    nav a.nav-link:hover { color: var(--fire); }
+
+    /* FORM PAGE */
+    .page-header {
+      text-align: center; padding: 60px 0 20px;
+    }
+    .page-header h1 { font-size: 3rem; }
+    .page-header h1 span { color: var(--fire); }
+    .page-header p { color: var(--ash); margin-top: 8px; }
+
+    .form-wrapper {
+      max-width: 680px; margin: 0 auto 80px;
+      background: var(--dark-panel); padding: 48px 40px; border-top: 3px solid var(--fire);
+    }
+
+    .field { margin-bottom: 22px; }
+    .field label {
+      display: block; font-size: 0.85rem; font-weight: 500;
+      margin-bottom: 6px; color: var(--bone);
+    }
+    .field input, .field textarea, .field select {
+      width: 100%; padding: 12px 14px;
+      background: var(--coal); border: 1px solid rgba(189, 181, 172, 0.2);
+      color: var(--bone); font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none; border-color: var(--fire);
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field input[type="file"] { padding: 10px; }
+    .field input[type="file"]::file-selector-button {
+      background: var(--fire); color: #fff; border: none;
+      font-family: 'Bebas Neue', sans-serif; font-size: 0.95rem;
+      letter-spacing: 0.04em; padding: 8px 18px; cursor: pointer; margin-right: 12px;
+    }
+
+    .radio-group, .yesno-group { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+    .radio-group label, .yesno-group label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.9rem; font-weight: 400; color: var(--ash); cursor: pointer;
+    }
+    .radio-group input[type="radio"], .yesno-group input[type="radio"] {
+      width: auto; accent-color: var(--fire);
+    }
+
+    .conditional { display: none; margin-top: 10px; }
+    .conditional.show { display: block; }
+
+    .section-divider {
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
+      color: var(--fire); letter-spacing: 0.1em;
+      border-bottom: 1px solid rgba(232, 66, 10, 0.2);
+      padding-bottom: 6px; margin: 32px 0 20px;
+    }
+
+    .btn {
+      display: inline-block; background: var(--fire); color: #fff;
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
+      letter-spacing: 0.06em; padding: 14px 36px; border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.15s; width: 100;
+    }
+    .btn:hover { background: #c7360a; transform: translateY(-1px); }
+    .form-btn { width: 100%; font-size: 1.3rem; padding: 16px; margin-top: 12px; }
+
+    .form-status {
+      text-align: center; margin-top: 16px; font-size: 0.95rem; min-height: 24px;
+    }
+    .form-status.success { color: #4ade80; }
+    .form-status.error { color: var(--fire); }
+
+    footer {
+      padding: 32px 0; text-align: center; color: var(--ash);
+      font-size: 0.8rem; border-top: 1px solid rgba(189, 181, 172, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .form-wrapper { padding: 32px 20px; }
+      .page-header h1 { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="index.html" class="logo">BUILT BY <span>NICOLE MARIE</span></a>
+    <a href="index.html" class="nav-link">&larr; Back to Home</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="page-header">
+  <h1>WEEKLY <span>CHECK-IN</span></h1>
+  <p>Fill this out every week. Honest answers only.</p>
+</div>
+
+<!-- CHECK-IN FORM -->
+<div class="form-wrapper">
+  <form id="checkinForm">
+
+    <!-- BASICS -->
+    <div class="section-divider">BASICS</div>
+    <div class="field">
+      <label for="clientName">Client Name</label>
+      <input type="text" id="clientName" name="clientName" required>
+    </div>
+    <div class="field">
+      <label for="checkinDate">Check-In Date</label>
+      <input type="date" id="checkinDate" name="checkinDate" required>
+    </div>
+    <div class="field">
+      <label for="dryWeight">Dry Weight (lbs)</label>
+      <input type="number" id="dryWeight" name="dryWeight" step="0.1" required>
+    </div>
+    <div class="field">
+      <label for="photos">Progress Photos</label>
+      <input type="file" id="photos" name="photos" accept="image/*" multiple>
+    </div>
+
+    <!-- NUTRITION -->
+    <div class="section-divider">NUTRITION</div>
+    <div class="field">
+      <label>Did you deviate from your nutrition plan?</label>
+      <div class="yesno-group">
+        <label><input type="radio" name="nutritionDeviation" value="No" required> No</label>
+        <label><input type="radio" name="nutritionDeviation" value="Yes"> Yes</label>
+      </div>
+      <div class="conditional" id="deviationExplain">
+        <label for="deviationDetails" style="margin-top:10px">Explain what happened</label>
+        <textarea id="deviationDetails" name="deviationDetails"></textarea>
+      </div>
+    </div>
+    <div class="field">
+      <label for="proteinDays">Evening protein — how many days this week? (0-7)</label>
+      <select id="proteinDays" name="proteinDays" required>
+        <option value="">Select...</option>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Hunger Level</label>
+      <div class="radio-group">
+        <label><input type="radio" name="hungerLevel" value="Fine" required> Fine</label>
+        <label><input type="radio" name="hungerLevel" value="Manageable"> Manageable</label>
+        <label><input type="radio" name="hungerLevel" value="Pretty Hungry"> Pretty Hungry</label>
+        <label><input type="radio" name="hungerLevel" value="Starving"> Starving</label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Daily Water Intake</label>
+      <div class="radio-group">
+        <label><input type="radio" name="waterIntake" value="Under 1L" required> Under 1L</label>
+        <label><input type="radio" name="waterIntake" value="1-2L"> 1-2L</label>
+        <label><input type="radio" name="waterIntake" value="2L+"> 2L+</label>
+      </div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="section-divider">ACTIVITY</div>
+    <div class="field">
+      <label for="totalSteps">Total Steps This Week</label>
+      <input type="number" id="totalSteps" name="totalSteps" required>
+    </div>
+    <div class="field">
+      <label>Mama Burner Completion</label>
+      <div class="radio-group">
+        <label><input type="radio" name="mamaBurner" value="Every day" required> Every day</label>
+        <label><input type="radio" name="mamaBurner" value="Most days"> Most days</label>
+        <label><input type="radio" name="mamaBurner" value="A few days"> A few days</label>
+        <label><input type="radio" name="mamaBurner" value="Missed it"> Missed it</label>
+      </div>
+    </div>
+
+    <!-- MINDSET -->
+    <div class="section-divider">MINDSET</div>
+    <div class="field">
+      <label for="proudOf">What are you proud of this week?</label>
+      <textarea id="proudOf" name="proudOf" required></textarea>
+    </div>
+    <div class="field">
+      <label for="excitedFor">What are you excited for this week?</label>
+      <textarea id="excitedFor" name="excitedFor" required></textarea>
+    </div>
+    <div class="field">
+      <label for="otherNotes">Other Notes</label>
+      <textarea id="otherNotes" name="otherNotes"></textarea>
+    </div>
+
+    <button type="submit" class="btn form-btn">SUBMIT CHECK-IN</button>
+    <div class="form-status" id="checkinStatus"></div>
+  </form>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    &copy; 2026 Built By Nicole Marie. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  // Show/hide deviation explanation
+  document.querySelectorAll('input[name="nutritionDeviation"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      document.getElementById('deviationExplain').classList.toggle('show', e.target.value === 'Yes');
+    });
+  });
+
+  // Set default date to today
+  document.getElementById('checkinDate').valueAsDate = new Date();
+
+  // Form submit
+  document.getElementById('checkinForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = document.getElementById('checkinStatus');
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'SENDING...';
+    status.className = 'form-status';
+    status.textContent = '';
+
+    const formData = new FormData(e.target);
+
+    try {
+      const res = await fetch('/api/checkin', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Failed to send');
+      status.className = 'form-status success';
+      status.textContent = 'Check-in submitted! Great work this week.';
+      e.target.reset();
+      document.getElementById('deviationExplain').classList.remove('show');
+    } catch (err) {
+      status.className = 'form-status error';
+      status.textContent = 'Something went wrong. Please try again.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'SUBMIT CHECK-IN';
+    }
+  });
+</script>
+
+</body>
+</html>

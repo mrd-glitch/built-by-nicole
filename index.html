@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Built By Nicole Marie | Nutrition &amp; Fitness Coaching</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --coal: #1A1108;
+      --fire: #E8420A;
+      --bone: #F5F0EB;
+      --ash: #BDB5AC;
+      --dark-panel: #231A0F;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--coal);
+      color: var(--bone);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
+
+    a { color: var(--fire); text-decoration: none; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(26, 17, 8, 0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(232, 66, 10, 0.15);
+      padding: 16px 0;
+    }
+    nav .container { display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--bone); }
+    .logo span { color: var(--fire); }
+    nav a.nav-link {
+      color: var(--ash); font-size: 0.9rem; font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a.nav-link:hover { color: var(--fire); }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center;
+      padding-top: 80px;
+    }
+    .hero .container {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+    }
+    .hero h1 { font-size: 4rem; line-height: 1.05; margin-bottom: 20px; }
+    .hero h1 span { color: var(--fire); }
+    .hero p { color: var(--ash); font-size: 1.15rem; margin-bottom: 32px; max-width: 440px; }
+    .btn {
+      display: inline-block; background: var(--fire); color: #fff;
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
+      letter-spacing: 0.06em; padding: 14px 36px; border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn:hover { background: #c7360a; transform: translateY(-1px); }
+    .photo-placeholder {
+      width: 100%; aspect-ratio: 3/4; max-width: 420px;
+      background: var(--dark-panel); border: 2px dashed rgba(232, 66, 10, 0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ash); font-size: 0.85rem; text-align: center;
+      margin-left: auto;
+    }
+
+    /* PILLARS */
+    .pillars { padding: 100px 0; }
+    .section-label {
+      font-family: 'Bebas Neue', sans-serif; color: var(--fire);
+      font-size: 1rem; letter-spacing: 0.15em; margin-bottom: 8px;
+    }
+    .section-title { font-size: 2.8rem; margin-bottom: 48px; }
+    .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .pillar-card {
+      background: var(--dark-panel); padding: 40px 28px; border-top: 3px solid var(--fire);
+    }
+    .pillar-card h3 { font-size: 1.6rem; margin-bottom: 12px; color: var(--bone); }
+    .pillar-card p { color: var(--ash); font-size: 0.95rem; }
+
+    /* HOW IT WORKS */
+    .how-it-works { padding: 80px 0 100px; }
+    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
+    .step {
+      text-align: center; padding: 24px 16px;
+    }
+    .step-number {
+      font-family: 'Bebas Neue', sans-serif; font-size: 3rem;
+      color: var(--fire); line-height: 1; margin-bottom: 12px;
+    }
+    .step h4 { font-size: 1.2rem; margin-bottom: 8px; }
+    .step p { color: var(--ash); font-size: 0.88rem; }
+
+    /* APPLICATION FORM */
+    .apply { padding: 80px 0 120px; }
+    .form-wrapper {
+      max-width: 640px; margin: 0 auto;
+      background: var(--dark-panel); padding: 48px 40px; border-top: 3px solid var(--fire);
+    }
+    .form-wrapper h2 { font-size: 2.2rem; margin-bottom: 8px; }
+    .form-wrapper .subtitle { color: var(--ash); margin-bottom: 32px; }
+
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block; font-size: 0.85rem; font-weight: 500;
+      margin-bottom: 6px; color: var(--bone);
+    }
+    .field input, .field textarea, .field select {
+      width: 100%; padding: 12px 14px;
+      background: var(--coal); border: 1px solid rgba(189, 181, 172, 0.2);
+      color: var(--bone); font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none; border-color: var(--fire);
+    }
+    .field textarea { resize: vertical; min-height: 100px; }
+
+    .form-btn {
+      width: 100%; margin-top: 12px; font-size: 1.3rem; padding: 16px;
+    }
+
+    .form-status {
+      text-align: center; margin-top: 16px; font-size: 0.95rem;
+      min-height: 24px;
+    }
+    .form-status.success { color: #4ade80; }
+    .form-status.error { color: var(--fire); }
+
+    /* FOOTER */
+    footer {
+      padding: 32px 0; text-align: center; color: var(--ash);
+      font-size: 0.8rem; border-top: 1px solid rgba(189, 181, 172, 0.1);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .hero .container { grid-template-columns: 1fr; text-align: center; }
+      .hero h1 { font-size: 2.8rem; }
+      .hero p { margin-left: auto; margin-right: auto; }
+      .photo-placeholder { margin: 0 auto; max-width: 300px; }
+      .pillars-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr 1fr; }
+      .form-wrapper { padding: 32px 20px; }
+    }
+    @media (max-width: 480px) {
+      .steps-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <div class="logo">BUILT BY <span>NICOLE MARIE</span></div>
+    <div class="nav-links">
+      <a href="#pillars" class="nav-link">What You Get</a>
+      <a href="#how" class="nav-link">How It Works</a>
+      <a href="#apply" class="nav-link">Apply</a>
+      <a href="checkin.html" class="nav-link">Client Check-In</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div>
+      <h1>YOUR BODY.<br><span>YOUR RULES.</span></h1>
+      <p>Custom nutrition plans, real accountability, and a fat-burning program designed for busy moms who are done making excuses.</p>
+      <a href="#apply" class="btn">APPLY NOW</a>
+    </div>
+    <div class="photo-placeholder">
+      [ Nicole's Photo ]<br>Replace with image
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section class="pillars" id="pillars">
+  <div class="container">
+    <div class="section-label">WHAT YOU GET</div>
+    <h2 class="section-title">THREE PILLARS OF THE PROGRAM</h2>
+    <div class="pillars-grid">
+      <div class="pillar-card">
+        <h3>CUSTOM NUTRITION PLAN</h3>
+        <p>Built around your body, your schedule, and food you actually want to eat. No cookie-cutter macros. No starvation. Just a plan that fits your life and gets results.</p>
+      </div>
+      <div class="pillar-card">
+        <h3>WEEKLY ACCOUNTABILITY</h3>
+        <p>Every week you check in with real data: weight, photos, nutrition, steps, and honest reflection. This is how we course-correct and keep the momentum going.</p>
+      </div>
+      <div class="pillar-card">
+        <h3>THE MAMA BURNER</h3>
+        <p>A short, intense daily workout designed for moms who don't have time to waste. No gym required. No excuses accepted. Just results.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works" id="how">
+  <div class="container">
+    <div class="section-label">THE PROCESS</div>
+    <h2 class="section-title">HOW IT WORKS</h2>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-number">01</div>
+        <h4>APPLY</h4>
+        <p>Fill out the application below so I can learn about your goals, lifestyle, and what you've tried before.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">02</div>
+        <h4>GET YOUR PLAN</h4>
+        <p>I build your custom nutrition plan and Mama Burner schedule based on your application and goals.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">03</div>
+        <h4>EXECUTE</h4>
+        <p>Follow the plan, do the work, and check in weekly. Consistency beats perfection every single time.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">04</div>
+        <h4>TRANSFORM</h4>
+        <p>Watch your body change, your energy skyrocket, and your confidence come back. This is what you've been waiting for.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLICATION FORM -->
+<section class="apply" id="apply">
+  <div class="container">
+    <div class="form-wrapper">
+      <h2>NEW CLIENT APPLICATION</h2>
+      <p class="subtitle">Ready to change? Fill this out and I'll be in touch.</p>
+      <form id="applyForm">
+        <div class="field">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone">
+        </div>
+        <div class="field">
+          <label for="age">Age</label>
+          <input type="number" id="age" name="age" min="16" max="99">
+        </div>
+        <div class="field">
+          <label for="goals">What are your goals?</label>
+          <textarea id="goals" name="goals" required></textarea>
+        </div>
+        <div class="field">
+          <label for="tried">What have you tried before?</label>
+          <textarea id="tried" name="tried"></textarea>
+        </div>
+        <div class="field">
+          <label for="commitment">On a scale of 1-10, how committed are you to making a change right now?</label>
+          <select id="commitment" name="commitment" required>
+            <option value="">Select...</option>
+            <option value="10">10 — All in</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5</option>
+            <option value="4">4 or below — Still thinking</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="anything_else">Anything else I should know?</label>
+          <textarea id="anything_else" name="anything_else"></textarea>
+        </div>
+        <button type="submit" class="btn form-btn">SEND APPLICATION</button>
+        <div class="form-status" id="applyStatus"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    &copy; 2026 Built By Nicole Marie. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  document.getElementById('applyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = document.getElementById('applyStatus');
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'SENDING...';
+    status.className = 'form-status';
+    status.textContent = '';
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Failed to send');
+      status.className = 'form-status success';
+      status.textContent = 'Application sent! Nicole will be in touch soon.';
+      e.target.reset();
+    } catch (err) {
+      status.className = 'form-status error';
+      status.textContent = 'Something went wrong. Please try again or email directly.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'SEND APPLICATION';
+    }
+  });
+</script>
+
+</body>
+</html>

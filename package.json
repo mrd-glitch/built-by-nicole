@@ -1,0 +1,10 @@
+{
+  "name": "built-by-nicole-marie",
+  "version": "1.0.0",
+  "description": "Nutrition & fitness coaching site by Nicole Marie",
+  "private": true,
+  "dependencies": {
+    "resend": "^4.0.0",
+    "formidable": "^3.5.1"
+  }
+}
