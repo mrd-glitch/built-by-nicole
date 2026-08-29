@@ -1,0 +1,20 @@
+/* Font families are loaded via next/font in src/app/fonts.ts (self-hosted at build
+   time — no runtime Google requests). MOONTIME is the licensed brand script, served
+   from /public/fonts. The next/font variables are mapped to NS token names here. */
+@font-face {
+  font-family: "MoonTime";
+  src: url("/fonts/MoonTime-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-display: var(--next-font-montserrat), "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--next-font-barlow), "Helvetica Neue", Arial, sans-serif;
+  --font-serif-display: var(--next-font-cinzel), "Times New Roman", serif;
+  --font-script: "MoonTime", "Moon Time", cursive;
+  --font-script-brush: "Brush Script MT", cursive;
+  --font-numeric: var(--next-font-bricolage), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, Menlo, monospace;
+}

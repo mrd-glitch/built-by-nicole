@@ -1,0 +1,24 @@
+:root{
+  /* NS shapes are near-square with one exception: the pill control. */
+  --radius-none:0px;
+  --radius-xs:2px;
+  --radius-sm:4px;
+  --radius-md:8px;
+  --radius-lg:14px;
+  --radius-xl:20px;
+  --radius-pill:999px;
+  --radius-circle:50%;
+
+  --radius-control:var(--radius-pill);
+  --radius-input:var(--radius-sm);
+  --radius-card:var(--radius-lg);
+  --radius-media:var(--radius-md);
+  --radius-badge:var(--radius-pill);
+  --radius-sheet:var(--radius-xl);
+
+  --border-width:1px;
+  --border-width-strong:2px;
+  --border-width-brand:3px;
+  --rule-accent:3px solid var(--accent);
+  --rule-hairline:1px solid var(--border-hairline);
+}

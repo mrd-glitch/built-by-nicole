@@ -1,0 +1,181 @@
+/* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
+import { getClientDetail, getSignedUrls } from "@/lib/data";
+import { ClientToggles } from "@/components/ClientToggles";
+import { ReplyBox } from "@/components/ReplyBox";
+
+export const dynamic = "force-dynamic";
+
+export default async function ClientDetail({
+  params,
+}: {
+  params: Promise<{ clientId: string }>;
+}) {
+  const { clientId } = await params;
+  const { profile, checkins, messages } = await getClientDetail(clientId);
+
+  if (!profile) {
+    return (
+      <main>
+        <Link href="/admin/clients">← All clients</Link>
+        <p className="mt-4" style={{ color: "var(--text-muted)" }}>
+          Client not found.
+        </p>
+      </main>
+    );
+  }
+
+  const latest = checkins[0];
+
+  return (
+    <main style={{ maxWidth: 980 }}>
+      <Link href="/admin/clients" style={{ fontSize: "var(--text-sm)" }}>
+        ← All clients
+      </Link>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <h1 style={{ fontSize: "var(--text-2xl)" }}>{profile.full_name || profile.email}</h1>
+        <span className="badge badge--green">{profile.status}</span>
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="grid gap-4">
+          {/* Latest check-in */}
+          <section className="card">
+            {latest ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <h2 className="eyebrow">Latest check-in · {latest.iso_week}</h2>
+                  <span className="metric" style={{ color: "var(--pink-700)" }}>
+                    {latest.dry_weight_lbs} lbs
+                  </span>
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="card--sunken card" style={{ padding: "var(--space-3)" }}>
+                    <p className="eyebrow" style={{ fontSize: 9 }}>
+                      Meals {latest.meal_rating}/5
+                    </p>
+                    <p className="mt-1" style={{ fontSize: "var(--text-sm)" }}>
+                      {latest.meal_note}
+                    </p>
+                  </div>
+                  <div className="card--sunken card" style={{ padding: "var(--space-3)" }}>
+                    <p className="eyebrow" style={{ fontSize: 9 }}>
+                      Training {latest.fitness_rating}/5
+                    </p>
+                    <p className="mt-1" style={{ fontSize: "var(--text-sm)" }}>
+                      {latest.fitness_note}
+                    </p>
+                  </div>
+                </div>
+                {latest.comments && (
+                  <p className="mt-3" style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
+                    &ldquo;{latest.comments}&rdquo;
+                  </p>
+                )}
+                <CheckinPhotos photos={(latest.checkin_photos ?? []) as { pose: string; storage_path: string }[]} />
+              </>
+            ) : (
+              <p style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
+                No check-ins yet. First one lands Sunday.
+              </p>
+            )}
+          </section>
+
+          {/* Thread */}
+          <section className="card">
+            <h2 className="eyebrow">Messages</h2>
+            <div className="mt-3 grid gap-2" style={{ maxHeight: 320, overflowY: "auto" }}>
+              {messages.length === 0 && (
+                <p style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>No messages yet.</p>
+              )}
+              {messages.map((m) => (
+                <p key={m.id} style={{ fontSize: "var(--text-sm)" }}>
+                  <strong style={{ color: m.sender_id !== profile.id ? "var(--pink-700)" : "var(--text-strong)" }}>
+                    {m.sender_id !== profile.id ? "You" : profile.first_name || "Client"}:
+                  </strong>{" "}
+                  {m.body}
+                </p>
+              ))}
+            </div>
+            <div className="mt-4">
+              <ReplyBox clientId={profile.id} placeholder={`Reply to ${profile.first_name || "client"}`} />
+            </div>
+          </section>
+
+          {/* Check-in history */}
+          <section className="card">
+            <h2 className="eyebrow">Check-in history</h2>
+            <div className="mt-3 grid gap-2">
+              {checkins.map((c) => (
+                <div key={c.id} className="flex items-center justify-between" style={{ borderTop: "var(--rule-hairline)", paddingTop: "var(--space-2)" }}>
+                  <span style={{ fontSize: "var(--text-sm)" }}>{c.iso_week}</span>
+                  <span className="metric" style={{ fontSize: "var(--text-sm)" }}>
+                    {c.dry_weight_lbs} lbs · M{c.meal_rating} · T{c.fitness_rating}
+                  </span>
+                </div>
+              ))}
+              {checkins.length === 0 && (
+                <p style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>Nothing yet.</p>
+              )}
+            </div>
+          </section>
+        </div>
+
+        {/* Sidebar */}
+        <aside className="grid content-start gap-4">
+          <ClientToggles client={profile} />
+          <section className="card">
+            <h2 className="eyebrow">Weight</h2>
+            <p className="metric mt-2" style={{ fontSize: "var(--text-lg)" }}>
+              {profile.start_weight_lbs ?? "—"} → {latest?.dry_weight_lbs ?? "—"}
+              <span style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
+                {" "}
+                / goal {profile.goal_weight_lbs ?? "—"}
+              </span>
+            </p>
+          </section>
+          <section className="card">
+            <h2 className="eyebrow">Plans</h2>
+            <div className="mt-2 grid gap-2">
+              <Link href="/admin/programs" className="btn btn--quiet btn--sm">
+                Workout program
+              </Link>
+              <Link href="/admin/meal-plans" className="btn btn--quiet btn--sm">
+                Meal plan
+              </Link>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+  );
+}
+
+async function CheckinPhotos({ photos }: { photos: { pose: string; storage_path: string }[] }) {
+  if (photos.length === 0) return null;
+  const order = { front: 0, side: 1, back: 2 } as Record<string, number>;
+  const sorted = [...photos].sort((a, b) => (order[a.pose] ?? 9) - (order[b.pose] ?? 9));
+  const urls = await getSignedUrls("progress-photos", sorted.map((p) => p.storage_path));
+  return (
+    <div className="mt-3 flex gap-2">
+      {sorted.map((p) =>
+        urls[p.storage_path] ? (
+          <img
+            key={p.pose}
+            src={urls[p.storage_path]}
+            alt={`${p.pose} progress photo`}
+            style={{ aspectRatio: "3/4", width: "32%", objectFit: "cover", borderRadius: "var(--radius-media)" }}
+          />
+        ) : (
+          <div
+            key={p.pose}
+            className="flex flex-1 items-center justify-center"
+            style={{ aspectRatio: "3/4", background: "var(--surface-sunken)", borderRadius: "var(--radius-media)", fontSize: "var(--text-xs)", color: "var(--text-faint)", textTransform: "capitalize" }}
+          >
+            {p.pose}
+          </div>
+        ),
+      )}
+    </div>
+  );
+}
