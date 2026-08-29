@@ -1,0 +1,90 @@
+:root{
+  /* ---- Families ---- */
+  --font-display:"Montserrat","Helvetica Neue",Arial,sans-serif;
+  --font-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --font-serif-display:"Cinzel","Times New Roman",serif;
+  --font-script:"MoonTime","Moon Time","Allura","Sacramento","Kaushan Script",cursive;
+  --font-script-brush:"Kaushan Script","Brush Script MT",cursive;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+
+  /* ---- Weights ---- */
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-semibold:600;
+  --weight-bold:700;
+  --weight-extrabold:800;
+  --weight-black:900;
+
+  /* ---- Size scale (1.25 major third, 16px base) ---- */
+  --text-2xs:11px;
+  --text-xs:12px;
+  --text-sm:14px;
+  --text-base:16px;
+  --text-md:18px;
+  --text-lg:21px;
+  --text-xl:26px;
+  --text-2xl:32px;
+  --text-3xl:40px;
+  --text-4xl:52px;
+  --text-5xl:68px;
+  --text-6xl:88px;
+  --text-7xl:116px;
+
+  /* ---- Line heights ---- */
+  --leading-tight:0.94;
+  --leading-snug:1.08;
+  --leading-heading:1.16;
+  --leading-body:1.55;
+  --leading-loose:1.7;
+
+  /* ---- Tracking ---- */
+  --tracking-tightest:-0.03em;
+  --tracking-tight:-0.015em;
+  --tracking-normal:0em;
+  --tracking-wide:0.06em;
+  --tracking-wider:0.14em;
+  --tracking-widest:0.26em;
+
+  /* ---- Semantic roles ---- */
+  --type-hero-family:var(--font-display);
+  --type-hero-size:var(--text-6xl);
+  --type-hero-weight:var(--weight-black);
+  --type-hero-leading:var(--leading-tight);
+  --type-hero-tracking:var(--tracking-tightest);
+  --type-hero-transform:uppercase;
+
+  --type-h1-size:var(--text-4xl);
+  --type-h2-size:var(--text-3xl);
+  --type-h3-size:var(--text-xl);
+  --type-heading-family:var(--font-display);
+  --type-heading-weight:var(--weight-extrabold);
+  --type-heading-tracking:var(--tracking-tight);
+
+  --type-ceremony-family:var(--font-serif-display);
+  --type-ceremony-weight:var(--weight-bold);
+  --type-ceremony-tracking:var(--tracking-wide);
+  --type-ceremony-transform:uppercase;
+
+  --type-eyebrow-family:var(--font-display);
+  --type-eyebrow-size:var(--text-xs);
+  --type-eyebrow-weight:var(--weight-bold);
+  --type-eyebrow-tracking:var(--tracking-widest);
+  --type-eyebrow-transform:uppercase;
+
+  --type-body-family:var(--font-body);
+  --type-body-size:var(--text-md);
+  --type-body-leading:var(--leading-body);
+
+  --type-ui-family:var(--font-body);
+  --type-ui-size:var(--text-sm);
+  --type-ui-weight:var(--weight-semibold);
+  --type-ui-tracking:var(--tracking-wide);
+
+  --type-script-family:var(--font-script);
+  --type-script-size:var(--text-4xl);
+  --type-script-tracking:var(--tracking-normal);
+
+  --type-metric-family:var(--font-mono);
+  --type-metric-weight:var(--weight-bold);
+  --type-metric-tracking:var(--tracking-tight);
+}

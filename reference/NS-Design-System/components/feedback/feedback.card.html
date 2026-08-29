@@ -1,0 +1,34 @@
+<!-- @dsCard group="Components" viewport="700x330" name="Feedback — dialog, toast, tooltip" subtitle="Ink surfaces, dot-coded status, 16px rise on open" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>NS feedback</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--bg-page)}.cols{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:start}.stack{display:flex;flex-direction:column;gap:12px}.sheet{position:relative;background:var(--surface-card);border-radius:var(--radius-sheet);box-shadow:var(--shadow-4);padding:24px}.title{font:var(--weight-extrabold) 21px/1.16 var(--font-display);letter-spacing:var(--tracking-tight);color:var(--text-strong)}.body{font-size:14px;color:var(--text-muted);margin-top:8px}.foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { Toast, Tooltip, IconButton, Icon, Button } = window.NSDesignSystem_14b176;
+function Demo(){
+  return <div className="cols">
+    <div className="sheet">
+      <div className="title">Join the March challenge</div>
+      <div className="body">12 hours, one team, no scrolling. Bring water and a mat.</div>
+      <div className="foot"><Button variant="ghost" size="sm">Not now</Button><Button size="sm">Lock it in</Button></div>
+    </div>
+    <div className="stack">
+      <Toast tone="success" title="Session logged" onDismiss={()=>{}}>Day 12 of 84. Keep stacking.</Toast>
+      <Toast tone="warning" title="Check-in due tonight" onDismiss={()=>{}} />
+      <Toast tone="danger" title="Card declined">Update your card to keep your spot.</Toast>
+      <div style={{display:'flex',gap:12,alignItems:'center',paddingTop:34}}>
+        <Tooltip label="Rate of perceived exertion"><IconButton label="About RPE" variant="outline" size="sm"><Icon name="info" size={16}/></IconButton></Tooltip>
+        <Tooltip label="Swap this movement" placement="right"><IconButton label="Swap" variant="ink" size="sm"><Icon name="repeat" size={16}/></IconButton></Tooltip>
+        <span style={{font:'var(--weight-bold) 10px/1 var(--font-body)',letterSpacing:'var(--tracking-widest)',textTransform:'uppercase',color:'var(--text-faint)'}}>hover the icons</span>
+      </div>
+    </div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

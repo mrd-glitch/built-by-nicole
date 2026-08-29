@@ -1,0 +1,34 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Core — buttons, badges, tags, cards" subtitle="Pill CTAs, status pills, chips and the card container" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>NS core components</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--bg-page)}.wrap{display:flex;flex-direction:column;gap:16px}.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.lbl{font:var(--weight-bold) 10px/1 var(--font-body);letter-spacing:var(--tracking-widest);text-transform:uppercase;color:var(--text-faint)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { Button, IconButton, Icon, Badge, Tag, Card } = window.NSDesignSystem_14b176;
+function Demo(){
+  return <div className="wrap">
+    <div className="row"><Button>Claim my spot</Button><Button variant="highlight">Start today</Button><Button variant="ink">Book a call</Button><Button variant="outline">See the plan</Button><Button variant="ghost">Details</Button><Button disabled>Closed</Button></div>
+    <div className="row"><Button size="sm">Small</Button><Button size="md" iconEnd={<Icon name="arrow-right" size={16}/>}>Medium</Button><Button size="lg">Large</Button>
+      <IconButton label="Play" variant="ink"><Icon name="play"/></IconButton>
+      <IconButton label="Add" variant="highlight"><Icon name="plus"/></IconButton>
+      <IconButton label="More" variant="outline" size="sm"><Icon name="ellipsis" size={16}/></IconButton></div>
+    <div className="row"><Badge>4 spots left</Badge><Badge tone="highlight">New</Badge><Badge tone="ink">Week 3</Badge><Badge tone="soft">Waitlist</Badge><Badge tone="neutral">Draft</Badge><Badge tone="success" dot>Checked in</Badge><Badge tone="outline">Free</Badge>
+      <Tag selected onSelect={()=>{}}>Strength</Tag><Tag onSelect={()=>{}}>Conditioning</Tag><Tag onRemove={()=>{}}>Glutes</Tag></div>
+    <div className="grid">
+      <Card media="../../assets/photography/gym-mirror-selfie.jpeg" mediaHeight={92} onClick={()=>{}}>
+        <Badge tone="accent">12 weeks</Badge>
+        <h3 style={{fontSize:'var(--text-md)',marginTop:8}}>Off-season strength</h3>
+      </Card>
+      <Card tone="invert" padding="md"><span className="lbl" style={{color:'var(--grey-400)'}}>Ink card</span><h3 style={{fontSize:'var(--text-md)',color:'var(--text-invert)',marginTop:8}}>Show prep, 20 weeks</h3></Card>
+      <Card tone="accent" padding="md"><span className="lbl" style={{color:'rgb(255 255 255 / .7)'}}>Accent card</span><h3 style={{fontSize:'var(--text-md)',color:'#fff',marginTop:8}}>Misogi Challenge</h3></Card>
+    </div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

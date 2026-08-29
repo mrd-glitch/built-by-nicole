@@ -1,0 +1,10 @@
+{
+  "name": "built-by-nicole-marie",
+  "version": "1.0.0",
+  "description": "Built By Nicole Marie - Nutrition & Fitness Coaching",
+  "type": "module",
+  "dependencies": {
+    "resend": "^3.2.0",
+    "formidable": "^3.5.1"
+  }
+}

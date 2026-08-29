@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Built By Nicole Marie | Nutrition & Fitness Coaching</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fire: #E8420A;
+      --ember: #FF6B35;
+      --coal: #1A1108;
+      --ash: #F5EFE6;
+      --bone: #FAF7F2;
+      --smoke: #8B7355;
+      --gold: #C9922A;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bone);
+      color: var(--coal);
+      overflow-x: hidden;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 4rem;
+      background: rgba(26,17,8,0.92);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      color: var(--ash);
+      letter-spacing: 0.08em;
+    }
+
+    .nav-logo span { color: var(--fire); }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--ash);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--ember); }
+
+    .nav-cta {
+      background: var(--fire);
+      color: white !important;
+      padding: 0.6rem 1.4rem;
+      border-radius: 2px;
+    }
+
+    .nav-cta:hover { background: var(--ember); color: white !important; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      background: var(--coal);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      right: 30%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(232,66,10,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-text {
+      padding: 8rem 4rem 4rem 4rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--ember);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 2rem;
+      height: 2px;
+      background: var(--fire);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 7vw, 7rem);
+      line-height: 0.92;
+      color: var(--ash);
+      letter-spacing: 0.02em;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 .accent {
+      color: var(--fire);
+      display: block;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--smoke);
+      line-height: 1.7;
+      max-width: 420px;
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+    }
+
+    .hero-sub em {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--ash);
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--fire);
+      color: white;
+      text-decoration: none;
+      padding: 1rem 2.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      transition: all 0.2s;
+      border: 2px solid var(--fire);
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--fire);
+    }
+
+    .btn-secondary {
+      display: inline-block;
+      color: var(--ash);
+      text-decoration: none;
+      padding: 1rem 2rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      margin-left: 1rem;
+    }
+
+    .btn-secondary:hover { color: var(--ember); }
+
+    .hero-image {
+      height: 100vh;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .hero-image-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #2A1A0E 0%, #1A1108 60%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .hero-image-placeholder .photo-icon {
+      width: 80px;
+      height: 80px;
+      border: 2px dashed rgba(232,66,10,0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-image-placeholder .photo-icon svg {
+      width: 32px;
+      height: 32px;
+      stroke: var(--fire);
+      opacity: 0.6;
+    }
+
+    .hero-image-placeholder p {
+      color: var(--smoke);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .hero-stat-bar {
+      position: absolute;
+      bottom: 3rem;
+      left: 4rem;
+      right: 50%;
+      display: flex;
+      gap: 3rem;
+      z-index: 2;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      color: var(--fire);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--smoke);
+      margin-top: 0.2rem;
+    }
+
+    /* WHAT YOU GET */
+    .section-what {
+      padding: 7rem 4rem;
+      background: var(--bone);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 4rem;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--fire);
+      margin-bottom: 0.75rem;
+    }
+
+    h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      line-height: 1;
+      letter-spacing: 0.02em;
+      color: var(--coal);
+    }
+
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      background: rgba(26,17,8,0.1);
+    }
+
+    .pillar {
+      background: var(--bone);
+      padding: 3rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    .pillar:hover { background: var(--ash); }
+
+    .pillar::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0;
+      height: 3px;
+      background: var(--fire);
+      transition: width 0.4s ease;
+    }
+
+    .pillar:hover::after { width: 100%; }
+
+    .pillar-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      color: rgba(232,66,10,0.12);
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    .pillar h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+      color: var(--coal);
+    }
+
+    .pillar p {
+      font-size: 0.95rem;
+      color: var(--smoke);
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    /* HOW IT WORKS */
+    .section-how {
+      padding: 7rem 4rem;
+      background: var(--coal);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .section-how::before {
+      content: '';
+      position: absolute;
+      bottom: -10%;
+      left: -5%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(232,66,10,0.08) 0%, transparent 70%);
+    }
+
+    .section-how .section-label { color: var(--ember); }
+    .section-how h2 { color: var(--ash); }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      margin-top: 4rem;
+      position: relative;
+    }
+
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 2rem;
+      left: 2rem;
+      right: 2rem;
+      height: 1px;
+      background: linear-gradient(90deg, var(--fire), transparent);
+    }
+
+    .step {
+      position: relative;
+      padding-top: 1.5rem;
+    }
+
+    .step-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--fire);
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      color: var(--fire);
+      margin-bottom: 0.5rem;
+    }
+
+    .step h4 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: var(--ash);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+
+    .step p {
+      font-size: 0.9rem;
+      color: var(--smoke);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* APPLY SECTION */
+    .section-apply {
+      padding: 7rem 4rem;
+      background: var(--ash);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: start;
+    }
+
+    .apply-copy h2 { margin-bottom: 1rem; }
+
+    .apply-copy p {
+      font-size: 1rem;
+      color: var(--smoke);
+      line-height: 1.8;
+      margin-bottom: 2rem;
+      font-weight: 300;
+    }
+
+    .apply-copy p em {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--coal);
+    }
+
+    .testimonial {
+      border-left: 3px solid var(--fire);
+      padding: 1.5rem 1.5rem;
+      background: white;
+      margin-top: 2rem;
+    }
+
+    .testimonial p {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--coal);
+      line-height: 1.7;
+      margin-bottom: 0.75rem !important;
+    }
+
+    .testimonial cite {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--smoke);
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    /* FORM */
+    .apply-form {
+      background: white;
+      padding: 3rem;
+      border-top: 4px solid var(--fire);
+    }
+
+    .form-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+      color: var(--coal);
+    }
+
+    .form-sub {
+      font-size: 0.85rem;
+      color: var(--smoke);
+      margin-bottom: 2rem;
+    }
+
+    .field-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    .field label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--coal);
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      border: 1.5px solid rgba(26,17,8,0.12);
+      padding: 0.75rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--coal);
+      background: var(--bone);
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--fire);
+      background: white;
+    }
+
+    .field textarea { resize: vertical; min-height: 100px; }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--fire);
+      color: white;
+      border: none;
+      padding: 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .submit-btn:hover { background: var(--coal); }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+
+    .form-success .check {
+      width: 60px;
+      height: 60px;
+      background: var(--fire);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+    }
+
+    .form-success h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-success p {
+      color: var(--smoke);
+      font-size: 0.95rem;
+    }
+
+    /* EXISTING CLIENTS */
+    .section-checkin {
+      padding: 5rem 4rem;
+      background: var(--fire);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+
+    .checkin-copy h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      color: white;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+
+    .checkin-copy p {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.95rem;
+    }
+
+    .btn-white {
+      display: inline-block;
+      background: white;
+      color: var(--fire);
+      text-decoration: none;
+      padding: 1rem 2.5rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn-white:hover {
+      background: var(--coal);
+      color: white;
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--coal);
+      padding: 3rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      color: var(--ash);
+      letter-spacing: 0.08em;
+    }
+
+    .footer-logo span { color: var(--fire); }
+
+    footer p {
+      color: var(--smoke);
+      font-size: 0.8rem;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-text > * {
+      animation: fadeUp 0.8s ease forwards;
+      opacity: 0;
+    }
+
+    .hero-eyebrow { animation-delay: 0.1s; }
+    h1 { animation-delay: 0.25s; }
+    .hero-sub { animation-delay: 0.4s; }
+    .hero-actions { animation-delay: 0.55s; }
+    .hero-stat-bar { animation-delay: 0.7s; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .hero-text { padding: 7rem 1.5rem 3rem; }
+      .hero-image { height: 300px; }
+      .hero-stat-bar { position: static; flex-direction: row; padding: 1.5rem; gap: 2rem; }
+
+      .section-what,
+      .section-how,
+      .section-apply { padding: 4rem 1.5rem; }
+
+      .pillars { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .steps::before { display: none; }
+
+      .section-apply { grid-template-columns: 1fr; gap: 2rem; }
+      .field-group { grid-template-columns: 1fr; }
+
+      .section-checkin { flex-direction: column; padding: 3rem 1.5rem; text-align: center; }
+
+      footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">Built By <span>Nicole Marie</span></div>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#apply" class="nav-cta">Apply Now</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-text">
+      <div class="hero-eyebrow">Online Nutrition & Fitness Coaching</div>
+      <h1>
+        Stop Starting
+        <span class="accent">Over.</span>
+      </h1>
+      <p class="hero-sub">
+        Real nutrition. Real workouts. Real accountability.
+        <em>Built around your life</em> — not someone else's highlight reel.
+      </p>
+      <div class="hero-actions">
+        <a href="#apply" class="btn-primary">Apply For Coaching</a>
+        <a href="#how" class="btn-secondary">See How It Works →</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <div class="hero-image-placeholder">
+        <div class="photo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="7.5" r="0.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <p>Nicole's photo goes here</p>
+      </div>
+    </div>
+
+    <div class="hero-stat-bar">
+      <div class="stat">
+        <span class="stat-num">100%</span>
+        <span class="stat-label">Personalized</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">Weekly</span>
+        <span class="stat-label">Check-ins</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">Real</span>
+        <span class="stat-label">Results</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT YOU GET -->
+  <section class="section-what" id="about">
+    <div class="section-header">
+      <div>
+        <div class="section-label">What You Get</div>
+        <h2>Coaching That<br>Actually Works</h2>
+      </div>
+    </div>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-num">01</div>
+        <h3>Custom Nutrition Plan</h3>
+        <p>Built around your body, your schedule, and your goals. No cookie-cutter meal plans. No foods you hate.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">02</div>
+        <h3>Weekly Accountability</h3>
+        <p>Check in every week. Track progress, adjust the plan, and keep momentum going — even when life gets in the way.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">03</div>
+        <h3>The Mama Burner</h3>
+        <p>A daily workout built for real life. Short, effective, and done before lunch. No gym required.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section-how" id="how">
+    <div class="section-header">
+      <div>
+        <div class="section-label">The Process</div>
+        <h2 style="color: var(--ash);">Simple By Design</h2>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot"></div>
+        <div class="step-num">Step 01</div>
+        <h4>Apply</h4>
+        <p>Fill out the application below. Tell Nicole where you're at and what you want to build.</p>
+      </div>
+      <div class="step">
+        <div class="step-dot"></div>
+        <div class="step-num">Step 02</div>
+        <h4>Connect</h4>
+        <p>Nicole reviews your application and reaches out to set up your initial consultation.</p>
+      </div>
+      <div class="step">
+        <div class="step-dot"></div>
+        <div class="step-num">Step 03</div>
+        <h4>Get Built</h4>
+        <p>Your custom plan is built. You get your nutrition targets, your workouts, and your check-in schedule.</p>
+      </div>
+      <div class="step">
+        <div class="step-dot"></div>
+        <div class="step-num">Step 04</div>
+        <h4>Win Weekly</h4>
+        <p>Check in every week. Progress is tracked. The plan adjusts. You keep moving forward.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPLY FORM -->
+  <section class="section-apply" id="apply">
+    <div class="apply-copy">
+      <div class="section-label">Ready To Start</div>
+      <h2>Let's Build<br>Something.</h2>
+      <p>
+        Nicole works with a small number of clients at a time — because <em>real coaching takes real attention.</em>
+        If you're ready to stop guessing and start building, apply below.
+      </p>
+      <p>
+        No pressure, no pitch. Just a conversation to see if it's a good fit.
+      </p>
+      <div class="testimonial">
+        <p>"I finally stopped dreading Mondays. The check-ins keep me honest and the plan actually fits my life."</p>
+        <cite>— Client, 8 weeks in</cite>
+      </div>
+    </div>
+
+    <div class="apply-form">
+      <div id="apply-form-content">
+        <div class="form-title">Apply For Coaching</div>
+        <div class="form-sub">Nicole will get back to you within 24–48 hours.</div>
+        <form id="applyForm">
+          <div class="field-group">
+            <div class="field">
+              <label>First Name *</label>
+              <input type="text" name="firstName" required placeholder="Sarah" />
+            </div>
+            <div class="field">
+              <label>Last Name *</label>
+              <input type="text" name="lastName" required placeholder="Johnson" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Email Address *</label>
+            <input type="email" name="email" required placeholder="sarah@email.com" />
+          </div>
+          <div class="field">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" placeholder="(555) 000-0000" />
+          </div>
+          <div class="field">
+            <label>What's your main goal? *</label>
+            <select name="goal" required>
+              <option value="">Select one...</option>
+              <option>Lose body fat</option>
+              <option>Build strength & muscle</option>
+              <option>Improve energy & habits</option>
+              <option>Post-partum / rebuild</option>
+              <option>General health & consistency</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Tell Nicole about yourself *</label>
+            <textarea name="about" required placeholder="Where are you at right now? What have you tried? What's getting in the way?"></textarea>
+          </div>
+          <div class="field">
+            <label>How did you hear about Nicole?</label>
+            <input type="text" name="referral" placeholder="Instagram, friend, etc." />
+          </div>
+          <button type="submit" class="submit-btn" id="applySubmitBtn">Submit Application</button>
+        </form>
+      </div>
+      <div class="form-success" id="apply-success">
+        <div class="check">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h3>Application Sent!</h3>
+        <p>Nicole will be in touch within 24–48 hours.<br>Check your inbox — and get excited.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXISTING CLIENT CTA -->
+  <section class="section-checkin">
+    <div class="checkin-copy">
+      <h2>Already A Client?</h2>
+      <p>Submit your weekly check-in here. Nicole's waiting to hear how your week went.</p>
+    </div>
+    <a href="checkin.html" class="btn-white">Weekly Check-In →</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Built By <span>Nicole Marie</span></div>
+    <p>© 2026 Built By Nicole Marie. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.getElementById('applyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('applySubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const res = await fetch('/api/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          document.getElementById('apply-form-content').style.display = 'none';
+          document.getElementById('apply-success').style.display = 'block';
+        } else {
+          throw new Error('Send failed');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Submit Application';
+        alert('Something went wrong. Please try again or email Nicole directly.');
+      }
+    });
+  </script>
+
+</body>
+</html>

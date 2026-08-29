@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Check-In | Built By Nicole Marie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fire: #E8420A;
+      --ember: #FF6B35;
+      --coal: #1A1108;
+      --ash: #F5EFE6;
+      --bone: #FAF7F2;
+      --smoke: #8B7355;
+      --gold: #C9922A;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--coal);
+      color: var(--ash);
+      min-height: 100vh;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 4rem;
+      border-bottom: 1px solid rgba(245,239,230,0.08);
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: var(--ash);
+      letter-spacing: 0.08em;
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--fire); }
+
+    .back-link {
+      font-size: 0.8rem;
+      color: var(--smoke);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--ember); }
+
+    .page-header {
+      padding: 4rem 4rem 2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .page-eyebrow {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--ember);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .page-eyebrow::before {
+      content: '';
+      display: block;
+      width: 2rem;
+      height: 2px;
+      background: var(--fire);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .page-sub {
+      font-size: 0.95rem;
+      color: var(--smoke);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .form-container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 1rem 4rem 6rem;
+    }
+
+    .form-section {
+      margin-bottom: 0.5rem;
+    }
+
+    .form-section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--fire);
+      padding: 1.5rem 0 0.75rem;
+      border-top: 1px solid rgba(245,239,230,0.08);
+      margin-top: 1.5rem;
+    }
+
+    .form-section-title:first-child {
+      border-top: none;
+      margin-top: 0;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .field label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ash);
+      line-height: 1.4;
+    }
+
+    .field .hint {
+      font-size: 0.78rem;
+      color: var(--smoke);
+      font-weight: 300;
+    }
+
+    .field input[type="text"],
+    .field input[type="date"],
+    .field input[type="number"],
+    .field textarea,
+    .field select {
+      background: rgba(245,239,230,0.06);
+      border: 1.5px solid rgba(245,239,230,0.12);
+      color: var(--ash);
+      padding: 0.85rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      width: 100%;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--fire);
+      background: rgba(245,239,230,0.1);
+    }
+
+    .field input::placeholder,
+    .field textarea::placeholder {
+      color: rgba(139,115,85,0.6);
+    }
+
+    .field select option {
+      background: var(--coal);
+      color: var(--ash);
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    /* Radio / Toggle Group */
+    .radio-group {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .radio-option {
+      flex: 1;
+      position: relative;
+    }
+
+    .radio-option input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .radio-option label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem;
+      border: 1.5px solid rgba(245,239,230,0.12);
+      background: rgba(245,239,230,0.04);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-radius: 2px;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .radio-option input:checked + label {
+      border-color: var(--fire);
+      background: rgba(232,66,10,0.15);
+      color: var(--ember);
+    }
+
+    .radio-option label:hover {
+      border-color: rgba(232,66,10,0.4);
+    }
+
+    /* Deviation conditional */
+    #deviationExplain {
+      display: none;
+      margin-top: 0.75rem;
+    }
+
+    #deviationExplain.visible { display: flex; }
+
+    /* Photo upload */
+    .photo-upload {
+      border: 2px dashed rgba(232,66,10,0.3);
+      border-radius: 2px;
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .photo-upload:hover {
+      border-color: var(--fire);
+      background: rgba(232,66,10,0.05);
+    }
+
+    .photo-upload input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(232,66,10,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+    }
+
+    .photo-upload p {
+      font-size: 0.9rem;
+      color: var(--smoke);
+      font-weight: 300;
+    }
+
+    .photo-upload strong {
+      color: var(--ember);
+      font-weight: 600;
+    }
+
+    .photo-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .photo-thumb {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 2px;
+      border: 2px solid var(--fire);
+    }
+
+    /* Submit */
+    .submit-area {
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(245,239,230,0.08);
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--fire);
+      color: white;
+      border: none;
+      padding: 1.1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .submit-btn:hover { background: var(--ember); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .privacy-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--smoke);
+      margin-top: 1rem;
+    }
+
+    /* Success */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+
+    .success-screen.visible { display: block; }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--fire);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+    }
+
+    .success-screen h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+
+    .success-screen p {
+      font-size: 1rem;
+      color: var(--smoke);
+      line-height: 1.7;
+      max-width: 400px;
+      margin: 0 auto 2rem;
+    }
+
+    .back-to-site {
+      display: inline-block;
+      color: var(--ember);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .page-header,
+      .form-container { padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Built By <span>Nicole Marie</span></a>
+    <a href="index.html" class="back-link">← Back to site</a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-eyebrow">Weekly Check-In</div>
+    <h1>Let's See<br>Those Wins.</h1>
+    <p class="page-sub">Fill this out every week — honestly. The good, the hard, all of it. This is how we keep the plan working for you.</p>
+  </div>
+
+  <div class="form-container">
+
+    <div id="checkinFormWrapper">
+      <form id="checkinForm" enctype="multipart/form-data">
+
+        <div class="form-section-title">The Basics</div>
+
+        <div class="field">
+          <label>Your Name *</label>
+          <input type="text" name="clientName" required placeholder="First and last name" />
+        </div>
+
+        <div class="field">
+          <label>Check-In Date *</label>
+          <input type="date" name="checkinDate" required />
+        </div>
+
+        <div class="field">
+          <label>Dry Weight (lbs) *</label>
+          <span class="hint">First thing in the morning, after bathroom, before eating or drinking</span>
+          <input type="text" name="dryWeight" required placeholder="e.g. 142.6" />
+        </div>
+
+        <div class="form-section-title">Progress Photos</div>
+
+        <div class="field">
+          <label>Attach Your Photos</label>
+          <span class="hint">Front, side, and back if possible. Good lighting helps. You've got this.</span>
+          <div class="photo-upload" id="photoUploadArea">
+            <input type="file" name="photos" id="photoInput" accept="image/*" multiple />
+            <div class="upload-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8420A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <p><strong>Tap to upload</strong> or drag and drop</p>
+            <p>JPG, PNG, HEIC accepted</p>
+          </div>
+          <div class="photo-preview" id="photoPreview"></div>
+        </div>
+
+        <div class="form-section-title">Nutrition</div>
+
+        <div class="field">
+          <label>Any deviations from your nutrition plan this week? *</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" name="deviation" id="dev-no" value="No" required />
+              <label for="dev-no">No — I stayed on track</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="deviation" id="dev-yes" value="Yes" />
+              <label for="dev-yes">Yes — I went off plan</label>
+            </div>
+          </div>
+          <div class="field" id="deviationExplain">
+            <textarea name="deviationDetails" placeholder="What happened? No judgment — just context for Nicole."></textarea>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>How many days did you have the evening protein? *</label>
+          <select name="eveningProteinDays" required>
+            <option value="">Select...</option>
+            <option>0 days</option>
+            <option>1 day</option>
+            <option>2 days</option>
+            <option>3 days</option>
+            <option>4 days</option>
+            <option>5 days</option>
+            <option>6 days</option>
+            <option>7 days — every day!</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Overall, how has hunger been this week? *</label>
+          <div class="radio-group" style="flex-wrap: wrap;">
+            <div class="radio-option">
+              <input type="radio" name="hunger" id="h1" value="Fine — no issues" required />
+              <label for="h1">Fine</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="hunger" id="h2" value="Manageable" />
+              <label for="h2">Manageable</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="hunger" id="h3" value="Pretty hungry" />
+              <label for="h3">Pretty hungry</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="hunger" id="h4" value="Starving" />
+              <label for="h4">Starving</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section-title">Hydration & Movement</div>
+
+        <div class="field">
+          <label>Average daily water intake? *</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" name="water" id="w1" value="Under 1L" required />
+              <label for="w1">Under 1L</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="water" id="w2" value="1–2L" />
+              <label for="w2">1–2L</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="water" id="w3" value="2L+ daily ✓" />
+              <label for="w3">2L+ ✓</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Total steps this week *</label>
+          <input type="text" name="steps" required placeholder="e.g. 42,500" />
+        </div>
+
+        <div class="field">
+          <label>Did you complete the Mama Burner each day before lunch? *</label>
+          <div class="radio-group" style="flex-wrap: wrap;">
+            <div class="radio-option">
+              <input type="radio" name="mamaBurner" id="mb1" value="Every day" required />
+              <label for="mb1">Every day</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="mamaBurner" id="mb2" value="Most days" />
+              <label for="mb2">Most days</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="mamaBurner" id="mb3" value="A few days" />
+              <label for="mb3">A few days</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="mamaBurner" id="mb4" value="Missed it" />
+              <label for="mb4">Missed it</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section-title">Mindset Check</div>
+
+        <div class="field">
+          <label>Tell me something you're proud of this week ✨ *</label>
+          <textarea name="proud" required placeholder="Big or small. Write it down. You earned it."></textarea>
+        </div>
+
+        <div class="field">
+          <label>What are you excited for this week? *</label>
+          <textarea name="excited" required placeholder="Goals, plans, anything that's got you fired up."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Any other notes, comments, or concerns?</label>
+          <textarea name="notes" placeholder="Anything else Nicole should know going into this week."></textarea>
+        </div>
+
+        <div class="submit-area">
+          <button type="submit" class="submit-btn" id="checkinSubmitBtn">Submit Check-In</button>
+          <p class="privacy-note">Submitted directly to Nicole. This is your space — be honest.</p>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="success-screen" id="checkinSuccess">
+      <div class="success-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2>Check-In Complete.</h2>
+      <p>Nicole has your update. She'll review it and be in touch. Now go have a great week.</p>
+      <a href="index.html" class="back-to-site">← Back to site</a>
+    </div>
+
+  </div>
+
+  <script>
+    // Set today's date as default
+    const dateInput = document.querySelector('input[type="date"]');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+
+    // Show deviation field conditionally
+    document.querySelectorAll('input[name="deviation"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const explain = document.getElementById('deviationExplain');
+        if (this.value === 'Yes') {
+          explain.classList.add('visible');
+        } else {
+          explain.classList.remove('visible');
+        }
+      });
+    });
+
+    // Photo preview
+    document.getElementById('photoInput').addEventListener('change', function() {
+      const preview = document.getElementById('photoPreview');
+      preview.innerHTML = '';
+      Array.from(this.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'photo-thumb';
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Form submit
+    document.getElementById('checkinForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('checkinSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      const formData = new FormData(this);
+
+      try {
+        const res = await fetch('/api/checkin', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (res.ok) {
+          document.getElementById('checkinFormWrapper').style.display = 'none';
+          document.getElementById('checkinSuccess').classList.add('visible');
+          window.scrollTo(0, 0);
+        } else {
+          throw new Error('Failed');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Submit Check-In';
+        alert('Something went wrong. Please try again.');
+      }
+    });
+  </script>
+
+</body>
+</html>
