@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { NSBadge } from "@/components/NSBadge";
 
 export default function SetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -27,7 +27,7 @@ export default function SetPasswordPage() {
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-5" style={{ background: "var(--ink-900)" }}>
-      <Image src="/brand/ns-lockup-paper-pink-on-ink.png" alt="Built by Nicole" width={96} height={96} />
+      <NSBadge tone="paper" size={96} />
       <h1 className="mt-6 text-center" style={{ color: "var(--paper-50)", fontSize: "var(--text-xl)" }}>
         You&apos;re in. Set your password.
       </h1>

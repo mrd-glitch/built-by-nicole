@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { login } from "@/lib/actions";
+import { NSBadge } from "@/components/NSBadge";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, undefined);
@@ -13,7 +13,7 @@ export default function LoginPage() {
       className="flex min-h-dvh flex-col items-center justify-center px-5"
       style={{ background: "var(--ink-900)" }}
     >
-      <Image src="/brand/ns-lockup-paper-pink-on-ink.png" alt="Built by Nicole" width={96} height={96} />
+      <NSBadge tone="paper" size={96} />
       <h1 className="mt-6 text-center" style={{ color: "var(--paper-50)", fontSize: "var(--text-xl)" }}>
         Welcome back.
       </h1>

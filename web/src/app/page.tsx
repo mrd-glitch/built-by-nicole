@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { IntakeForm } from "@/components/IntakeForm";
+import { NSBadge } from "@/components/NSBadge";
 
 const pillars = [
   {
@@ -32,7 +33,7 @@ export default function LandingPage() {
         className="flex items-center justify-between px-5"
         style={{ height: "var(--nav-height)", background: "var(--ink-900)" }}
       >
-        <Image src="/brand/ns-lockup-paper-pink-on-ink.png" alt="Built by Nicole" width={64} height={64} />
+        <NSBadge tone="paper" size={64} />
         <Link href="/login" className="btn btn--ghost-invert btn--sm">
           Client login
         </Link>

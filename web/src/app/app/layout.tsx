@@ -1,9 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/BottomNav";
 import { getSessionUser } from "@/lib/data";
 import { logout } from "@/lib/actions";
+import { NSBadge } from "@/components/NSBadge";
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const session = await getSessionUser();
@@ -23,7 +23,7 @@ export default async function ClientLayout({ children }: { children: React.React
         }}
       >
         <div className="flex items-center gap-3">
-          <Image src="/brand/ns-lockup-ink-pink-on-paper.png" alt="Built by Nicole" width={40} height={40} />
+          <NSBadge tone="ink" size={40} />
           <span style={{ fontFamily: "var(--font-numeric)", fontWeight: 700, fontSize: "var(--text-lg)", letterSpacing: "-0.02em", color: "var(--text-strong)" }}>
             Hey, {firstName}
           </span>

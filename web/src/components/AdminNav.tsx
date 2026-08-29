@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { NSBadge } from "@/components/NSBadge";
 
 const links = [
   { href: "/admin", label: "Feed" },
@@ -18,7 +18,7 @@ export function AdminNav() {
   return (
     <nav className="admin-nav" aria-label="Admin">
       <div className="admin-nav__brand">
-        <Image src="/brand/ns-lockup-paper-pink-on-ink.png" alt="" width={36} height={36} />
+        <NSBadge tone="paper" size={36} />
         <span
           style={{
             fontFamily: "var(--font-display)",
