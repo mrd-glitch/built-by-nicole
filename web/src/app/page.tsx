@@ -176,7 +176,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer style={{ background: "var(--ink-900)", color: "var(--grey-400)" }}>
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4 px-5 py-8">
-          <Image src="/brand/swirl-paper-pink.png" alt="" width={44} height={44} />
+          <NSBadge tone="paper" size={44} />
           <p style={{ fontSize: "var(--text-sm)" }}>
             Built by Nicole · Lethbridge, AB ·{" "}
             <Link href="/login" style={{ color: "var(--pink-300)" }}>
