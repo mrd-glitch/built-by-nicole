@@ -1,8 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { getClientDetail, getSignedUrls } from "@/lib/data";
+import { AssignPlans } from "@/components/AssignPlans";
 import { ClientToggles } from "@/components/ClientToggles";
 import { ReplyBox } from "@/components/ReplyBox";
+import { MediaBubble } from "@/components/MessageMedia";
+import { ReopenCheckin } from "@/components/ReopenCheckin";
+import { isoWeekOfDate } from "@/lib/checkin-window";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +16,7 @@ export default async function ClientDetail({
   params: Promise<{ clientId: string }>;
 }) {
   const { clientId } = await params;
-  const { profile, checkins, messages } = await getClientDetail(clientId);
+  const { profile, checkins, messages, programAssignment, mealAssignment, programTemplates, mealTemplates } = await getClientDetail(clientId);
 
   if (!profile) {
     return (
@@ -89,12 +93,16 @@ export default async function ClientDetail({
                 <p style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>No messages yet.</p>
               )}
               {messages.map((m) => (
-                <p key={m.id} style={{ fontSize: "var(--text-sm)" }}>
+                <div key={m.id} style={{ fontSize: "var(--text-sm)" }}>
                   <strong style={{ color: m.sender_id !== profile.id ? "var(--pink-700)" : "var(--text-strong)" }}>
                     {m.sender_id !== profile.id ? "You" : profile.first_name || "Client"}:
                   </strong>{" "}
-                  {m.body}
-                </p>
+                  {m.kind === "voice" || m.kind === "video" ? (
+                    m.media_path ? <MediaBubble path={m.media_path} kind={m.kind} /> : "(media)"
+                  ) : (
+                    m.body
+                  )}
+                </div>
               ))}
             </div>
             <div className="mt-4">
@@ -104,7 +112,10 @@ export default async function ClientDetail({
 
           {/* Check-in history */}
           <section className="card">
-            <h2 className="eyebrow">Check-in history</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="eyebrow">Check-in history</h2>
+              <ReopenCheckin clientId={profile.id} week={isoWeekOfDate(new Date(Date.now() - 7 * 86400000), profile.timezone ?? "America/Edmonton")} />
+            </div>
             <div className="mt-3 grid gap-2">
               {checkins.map((c) => (
                 <div key={c.id} className="flex items-center justify-between" style={{ borderTop: "var(--rule-hairline)", paddingTop: "var(--space-2)" }}>
@@ -134,17 +145,20 @@ export default async function ClientDetail({
               </span>
             </p>
           </section>
-          <section className="card">
-            <h2 className="eyebrow">Plans</h2>
-            <div className="mt-2 grid gap-2">
-              <Link href="/admin/programs" className="btn btn--quiet btn--sm">
-                Workout program
-              </Link>
-              <Link href="/admin/meal-plans" className="btn btn--quiet btn--sm">
-                Meal plan
-              </Link>
-            </div>
-          </section>
+          <AssignPlans
+            clientId={profile.id}
+            clientName={profile.full_name || profile.email}
+            program={(() => {
+              const v = programAssignment?.program_versions as unknown as { id: string; programs: { name: string; description: string | null; weeks: number; days_per_week: number } } | null;
+              return v ? { versionId: v.id, name: v.programs.name, description: v.programs.description, weeks: v.programs.weeks, daysPerWeek: v.programs.days_per_week } : null;
+            })()}
+            meal={(() => {
+              const v = mealAssignment?.meal_plan_versions as unknown as { id: string; meal_plans: { name: string; target_calories: number | null } } | null;
+              return v ? { versionId: v.id, name: v.meal_plans.name, calories: v.meal_plans.target_calories } : null;
+            })()}
+            programTemplates={programTemplates as never}
+            mealTemplates={mealTemplates as never}
+          />
         </aside>
       </div>
     </main>

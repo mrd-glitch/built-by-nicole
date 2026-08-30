@@ -16,7 +16,7 @@ export default async function MealPlanBuilderPage({
     supabase
       .from("meal_plan_versions")
       .select(
-        "id, version, published_at, intro, pdf_name, meal_plans(id, name), meals(id, name, note, position, meal_items(id, name, portion, protein, carbs, fats, calories, position)), meal_plan_assignments(active, profiles(id, full_name))",
+        "id, version, published_at, intro, pdf_name, meal_plans(id, name, description, target_calories, target_mode, target_protein_g, target_carbs_g, target_fat_g, target_protein_pct, target_carbs_pct, target_fat_pct), meals(id, name, note, position, meal_items(id, name, portion, protein, carbs, fats, calories, position)), meal_plan_assignments(active, profiles(id, full_name))",
       )
       .eq("id", versionId)
       .single(),

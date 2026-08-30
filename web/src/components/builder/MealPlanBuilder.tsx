@@ -7,11 +7,14 @@ import {
   addMeal,
   addMealItem,
   deleteMeal,
-  publishAndAssignMealPlan,
+  assignMealPlanCopy,
+  publishMealPlan,
   removeMealItem,
   updateMeal,
+  updateMealPlanMeta,
   updateMealPlanVersion,
 } from "@/lib/actions-builder";
+import { FoodPicker, type PickedFood } from "@/components/FoodPicker";
 
 interface Item {
   id: string;
@@ -30,13 +33,26 @@ interface Meal {
   position: number;
   meal_items: Item[];
 }
+interface PlanMeta {
+  id: string;
+  name: string;
+  description: string | null;
+  target_calories: number | null;
+  target_mode: "percent" | "grams";
+  target_protein_g: number | null;
+  target_carbs_g: number | null;
+  target_fat_g: number | null;
+  target_protein_pct: number | null;
+  target_carbs_pct: number | null;
+  target_fat_pct: number | null;
+}
 interface Version {
   id: string;
   version: number;
   published_at: string | null;
   intro: string | null;
   pdf_name: string | null;
-  meal_plans: { id: string; name: string };
+  meal_plans: PlanMeta;
   meals: Meal[];
   meal_plan_assignments: { active: boolean; profiles: { id: string; full_name: string } | null }[];
 }
@@ -48,6 +64,7 @@ export function MealPlanBuilder({ version, clients }: { version: Version; client
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [meta, setMeta] = useState<PlanMeta>(version.meal_plans);
   const assigned = version.meal_plan_assignments?.filter((a) => a.active).map((a) => a.profiles?.full_name).filter(Boolean) ?? [];
 
   function flashSaved() {
@@ -71,13 +88,14 @@ export function MealPlanBuilder({ version, clients }: { version: Version; client
     flashSaved();
   }
 
-  async function onAddItem(meal: Meal, item: { name: string; portion: string; protein: number | null; carbs: number | null; fats: number | null }) {
-    const res = await addMealItem(meal.id, item, meal.meal_items.length + 1);
+  async function onAddItem(meal: Meal, item: PickedFood) {
+    const payload = { name: item.name, portion: item.portion, protein: item.protein, carbs: item.carbs, fats: item.fats, calories: item.calories };
+    const res = await addMealItem(meal.id, payload, meal.meal_items.length + 1);
     if ("id" in res && res.id) {
       setMeals(
         meals.map((m) =>
           m.id === meal.id
-            ? { ...m, meal_items: [...m.meal_items, { ...item, calories: null, id: res.id!, position: m.meal_items.length + 1 }] }
+            ? { ...m, meal_items: [...m.meal_items, { ...payload, id: res.id!, position: m.meal_items.length + 1 }] }
             : m,
         ),
       );
@@ -85,15 +103,47 @@ export function MealPlanBuilder({ version, clients }: { version: Version; client
     }
   }
 
+  function saveMeta(fields: Partial<PlanMeta>) {
+    const next = { ...meta, ...fields };
+    setMeta(next);
+    updateMealPlanMeta(meta.id, fields);
+    flashSaved();
+  }
+
+  /* Resolved gram targets from either entry mode */
+  const kcal = meta.target_calories ?? 0;
+  const targets = meta.target_mode === "grams"
+    ? { p: meta.target_protein_g ?? 0, c: meta.target_carbs_g ?? 0, f: meta.target_fat_g ?? 0, kcal }
+    : {
+        p: kcal && meta.target_protein_pct ? Math.round((kcal * meta.target_protein_pct) / 100 / 4) : 0,
+        c: kcal && meta.target_carbs_pct ? Math.round((kcal * meta.target_carbs_pct) / 100 / 4) : 0,
+        f: kcal && meta.target_fat_pct ? Math.round((kcal * meta.target_fat_pct) / 100 / 9) : 0,
+        kcal,
+      };
+  const totals = meals.reduce(
+    (acc, m) => {
+      for (const it of m.meal_items) {
+        acc.kcal += it.calories ?? 0;
+        acc.p += it.protein ?? 0;
+        acc.c += it.carbs ?? 0;
+        acc.f += it.fats ?? 0;
+      }
+      return acc;
+    },
+    { kcal: 0, p: 0, c: 0, f: 0 },
+  );
+
   async function onRemoveItem(mealId: string, itemId: string) {
     setMeals(meals.map((m) => (m.id === mealId ? { ...m, meal_items: m.meal_items.filter((i) => i.id !== itemId) } : m)));
     await removeMealItem(itemId);
     flashSaved();
   }
 
-  async function onPublish(clientId: string | null) {
+  async function onPublish(client: { id: string; full_name: string } | null) {
     setBusy(true);
-    const res = await publishAndAssignMealPlan(version.id, clientId);
+    const res = client
+      ? await assignMealPlanCopy(version.id, client.id, client.full_name)
+      : await publishMealPlan(version.id);
     setBusy(false);
     if (res && "error" in res && res.error) return setError(res.error);
     setPublishOpen(false);
@@ -124,13 +174,73 @@ export function MealPlanBuilder({ version, clients }: { version: Version; client
 
       <textarea
         className="input mt-4"
-        placeholder="Intro note for the client (how to build a plate, when to eat, anything)."
+        placeholder="Plan description for the client (how to build a plate, when to eat, anything)."
         defaultValue={version.intro ?? ""}
         onBlur={(e) => {
           updateMealPlanVersion(version.id, { intro: e.target.value || null });
           flashSaved();
         }}
       />
+
+      {/* Targets */}
+      <section className="glass mt-4" style={{ padding: "var(--space-4)" }}>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="eyebrow" style={{ color: "var(--text-strong)" }}>Targets</h2>
+          <div className="seg">
+            <button type="button" className="seg__opt" aria-pressed={meta.target_mode === "percent"} onClick={() => saveMeta({ target_mode: "percent" })}>
+              % split
+            </button>
+            <button type="button" className="seg__opt" aria-pressed={meta.target_mode === "grams"} onClick={() => saveMeta({ target_mode: "grams" })}>
+              Grams
+            </button>
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          <div>
+            <span className="field-label" style={{ fontSize: 9 }}>Calories</span>
+            <input className="input metric" inputMode="numeric" defaultValue={meta.target_calories ?? ""} placeholder="2500"
+              onBlur={(e) => saveMeta({ target_calories: e.target.value ? parseFloat(e.target.value) : null })} />
+          </div>
+          {meta.target_mode === "percent" ? (
+            <>
+              <div>
+                <span className="field-label" style={{ fontSize: 9 }}>Protein %</span>
+                <input className="input metric" inputMode="numeric" defaultValue={meta.target_protein_pct ?? ""} placeholder="30"
+                  onBlur={(e) => saveMeta({ target_protein_pct: e.target.value ? parseFloat(e.target.value) : null })} />
+              </div>
+              <div>
+                <span className="field-label" style={{ fontSize: 9 }}>Carbs %</span>
+                <input className="input metric" inputMode="numeric" defaultValue={meta.target_carbs_pct ?? ""} placeholder="40"
+                  onBlur={(e) => saveMeta({ target_carbs_pct: e.target.value ? parseFloat(e.target.value) : null })} />
+              </div>
+              <div>
+                <span className="field-label" style={{ fontSize: 9 }}>Fat %</span>
+                <input className="input metric" inputMode="numeric" defaultValue={meta.target_fat_pct ?? ""} placeholder="30"
+                  onBlur={(e) => saveMeta({ target_fat_pct: e.target.value ? parseFloat(e.target.value) : null })} />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <span className="field-label" style={{ fontSize: 9 }}>Protein g</span>
+                <input className="input metric" inputMode="numeric" defaultValue={meta.target_protein_g ?? ""} placeholder="180"
+                  onBlur={(e) => saveMeta({ target_protein_g: e.target.value ? parseFloat(e.target.value) : null })} />
+              </div>
+              <div>
+                <span className="field-label" style={{ fontSize: 9 }}>Carbs g</span>
+                <input className="input metric" inputMode="numeric" defaultValue={meta.target_carbs_g ?? ""} placeholder="250"
+                  onBlur={(e) => saveMeta({ target_carbs_g: e.target.value ? parseFloat(e.target.value) : null })} />
+              </div>
+              <div>
+                <span className="field-label" style={{ fontSize: 9 }}>Fat g</span>
+                <input className="input metric" inputMode="numeric" defaultValue={meta.target_fat_g ?? ""} placeholder="80"
+                  onBlur={(e) => saveMeta({ target_fat_g: e.target.value ? parseFloat(e.target.value) : null })} />
+              </div>
+            </>
+          )}
+        </div>
+        <MacroDials totals={totals} targets={targets} />
+      </section>
 
       <div className="mt-4 grid gap-3">
         {meals.map((meal) => (
@@ -158,7 +268,7 @@ export function MealPlanBuilder({ version, clients }: { version: Version; client
             <h2 style={{ fontSize: "var(--text-lg)" }}>Send it to a client</h2>
             <div className="mt-4 grid gap-2">
               {clients.map((c) => (
-                <button key={c.id} type="button" className="btn btn--quiet w-full" onClick={() => onPublish(c.id)} disabled={busy}>
+                <button key={c.id} type="button" className="btn btn--quiet w-full" onClick={() => onPublish(c)} disabled={busy}>
                   {c.full_name}
                 </button>
               ))}
@@ -186,34 +296,12 @@ function MealCard({
 }: {
   meal: Meal;
   onDelete: () => void;
-  onAddItem: (item: { name: string; portion: string; protein: number | null; carbs: number | null; fats: number | null }) => void;
+  onAddItem: (item: PickedFood) => void;
   onRemoveItem: (itemId: string) => void;
   onRename: (name: string) => void;
   onNote: (note: string) => void;
 }) {
   const [adding, setAdding] = useState(false);
-  const [name, setName] = useState("");
-  const [portion, setPortion] = useState("");
-  const [protein, setProtein] = useState("");
-  const [carbs, setCarbs] = useState("");
-  const [fats, setFats] = useState("");
-
-  function submit() {
-    if (!name.trim()) return;
-    onAddItem({
-      name: name.trim(),
-      portion: portion.trim(),
-      protein: protein ? parseFloat(protein) : null,
-      carbs: carbs ? parseFloat(carbs) : null,
-      fats: fats ? parseFloat(fats) : null,
-    });
-    setName("");
-    setPortion("");
-    setProtein("");
-    setCarbs("");
-    setFats("");
-    setAdding(false);
-  }
 
   return (
     <section className="card" style={{ padding: "var(--space-4)" }}>
@@ -246,7 +334,7 @@ function MealCard({
             </p>
             <div className="flex items-center gap-2">
               <span className="metric" style={{ fontSize: "var(--text-2xs)", color: "var(--grey-500)" }}>
-                P{it.protein ?? 0} C{it.carbs ?? 0} F{it.fats ?? 0}
+                {it.calories != null ? `${it.calories} kcal · ` : ""}P{it.protein ?? 0} C{it.carbs ?? 0} F{it.fats ?? 0}
               </span>
               <button type="button" className="btn btn--quiet btn--sm" onClick={() => onRemoveItem(it.id)} aria-label={`Remove ${it.name}`}>
                 ✕
@@ -255,29 +343,69 @@ function MealCard({
           </div>
         ))}
 
-      {adding ? (
-        <div className="mt-3 grid gap-2" style={{ borderTop: "var(--rule-hairline)", paddingTop: "var(--space-3)" }}>
-          <input className="input" placeholder="Food (Chicken breast)" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-          <input className="input" placeholder="Portion (5 oz / 1 fist)" value={portion} onChange={(e) => setPortion(e.target.value)} />
-          <div className="grid grid-cols-3 gap-2">
-            <input className="input metric" inputMode="decimal" placeholder="P" aria-label="Protein grams" value={protein} onChange={(e) => setProtein(e.target.value)} />
-            <input className="input metric" inputMode="decimal" placeholder="C" aria-label="Carb grams" value={carbs} onChange={(e) => setCarbs(e.target.value)} />
-            <input className="input metric" inputMode="decimal" placeholder="F" aria-label="Fat grams" value={fats} onChange={(e) => setFats(e.target.value)} />
-          </div>
-          <div className="flex gap-2">
-            <button type="button" className="btn btn--primary btn--sm flex-1" onClick={submit} disabled={!name.trim()}>
-              Add food
-            </button>
-            <button type="button" className="btn btn--quiet btn--sm" onClick={() => setAdding(false)}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button type="button" className="btn btn--quiet btn--sm mt-3 w-full" onClick={() => setAdding(true)}>
-          + Add food
-        </button>
+      {adding && (
+        <FoodPicker
+          onPick={(f) => {
+            onAddItem(f);
+            setAdding(false);
+          }}
+          onClose={() => setAdding(false)}
+        />
       )}
+      <button type="button" className="btn btn--quiet btn--sm mt-3 w-full" onClick={() => setAdding(true)}>
+        + Add food
+      </button>
     </section>
+  );
+}
+
+/* Filling macro bars: totals vs targets, live while building. */
+export function MacroDials({
+  totals,
+  targets,
+}: {
+  totals: { kcal: number; p: number; c: number; f: number };
+  targets: { kcal: number; p: number; c: number; f: number };
+}) {
+  const rows = [
+    { label: "Calories", unit: "kcal", have: Math.round(totals.kcal), want: Math.round(targets.kcal), color: "var(--pink-500)" },
+    { label: "Protein", unit: "g", have: Math.round(totals.p), want: targets.p, color: "var(--ink-900)" },
+    { label: "Carbs", unit: "g", have: Math.round(totals.c), want: targets.c, color: "var(--highlight-deep, #E8C400)" },
+    { label: "Fat", unit: "g", have: Math.round(totals.f), want: targets.f, color: "var(--grey-500)" },
+  ];
+  return (
+    <div className="mt-4 grid gap-2">
+      {rows.map((r) => {
+        const pct = r.want > 0 ? Math.min((r.have / r.want) * 100, 100) : 0;
+        const over = r.want > 0 && r.have > r.want * 1.03;
+        return (
+          <div key={r.label}>
+            <div className="flex items-baseline justify-between">
+              <span style={{ fontSize: "var(--text-2xs)", fontFamily: "var(--font-display)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)" }}>
+                {r.label}
+              </span>
+              <span className="metric" style={{ fontSize: "var(--text-xs)", color: over ? "var(--danger)" : "var(--text-strong)" }}>
+                {r.have}
+                {r.want > 0 && <span style={{ color: "var(--text-faint)" }}> / {r.want} {r.unit}</span>}
+                {r.want > 0 && !over && r.have < r.want && (
+                  <span style={{ color: "var(--text-faint)" }}> · {r.want - r.have} left</span>
+                )}
+              </span>
+            </div>
+            <div style={{ height: 7, borderRadius: 4, background: "rgb(13 13 15 / 0.07)", overflow: "hidden", marginTop: 3 }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${pct}%`,
+                  borderRadius: 4,
+                  background: over ? "var(--danger)" : r.color,
+                  transition: "width 300ms ease",
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }

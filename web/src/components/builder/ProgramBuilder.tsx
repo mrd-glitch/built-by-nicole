@@ -6,14 +6,17 @@ import { useRouter } from "next/navigation";
 import {
   addBlock,
   addExerciseToBlock,
+  assignProgramCopy,
   copyDayBlocks,
   createExerciseQuick,
   deleteBlock,
   publishAndAssign,
   removeBlockExercise,
   renameDay,
+  setWeekOverride,
   updateBlock,
   updateBlockExercise,
+  updateProgramMeta,
 } from "@/lib/actions-builder";
 
 interface ExerciseRow {
@@ -21,6 +24,12 @@ interface ExerciseRow {
   name: string;
   youtube_url: string | null;
   cue: string | null;
+}
+interface Override {
+  week: number;
+  sets: number | null;
+  rep_range: string | null;
+  target_weight_lbs: number | null;
 }
 interface BlockExercise {
   id: string;
@@ -31,7 +40,9 @@ interface BlockExercise {
   target_weight_lbs: number | null;
   optional: boolean;
   optional_note: string | null;
+  directions: string | null;
   position: number;
+  program_week_overrides: Override[];
 }
 interface Block {
   id: string;
@@ -52,7 +63,7 @@ interface Version {
   id: string;
   version: number;
   published_at: string | null;
-  programs: { id: string; name: string };
+  programs: { id: string; name: string; description: string | null; weeks: number; days_per_week: number; is_template: boolean };
   program_days: Day[];
   program_assignments: { active: boolean; profiles: { id: string; full_name: string } | null }[];
 }
@@ -77,6 +88,9 @@ export function ProgramBuilder({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [view, setView] = useState<"days" | "weeks">("days");
+  const [weeks, setWeeks] = useState(version.programs.weeks);
+  const [directionsOpen, setDirectionsOpen] = useState<Record<string, boolean>>({});
 
   const day = useMemo(() => days.find((d) => d.id === activeDayId) ?? days[0], [days, activeDayId]);
   const assigned = version.program_assignments?.filter((a) => a.active).map((a) => a.profiles?.full_name).filter(Boolean) ?? [];
@@ -125,7 +139,7 @@ export function ProgramBuilder({
                 ...b,
                 block_exercises: [
                   ...b.block_exercises,
-                  { id: res.id!, exercise_id: ex.id, exercise_name: ex.name, sets: 3, rep_range: "8-10", target_weight_lbs: null, optional: false, optional_note: null, position: pos },
+                  { id: res.id!, exercise_id: ex.id, exercise_name: ex.name, sets: 3, rep_range: "8-10", target_weight_lbs: null, optional: false, optional_note: null, directions: null, position: pos, program_week_overrides: [] },
                 ],
               }
             : b,
@@ -172,9 +186,11 @@ export function ProgramBuilder({
     window.location.reload();
   }
 
-  async function onPublish(clientId: string | null) {
+  async function onPublish(client: { id: string; full_name: string } | null) {
     setBusy(true);
-    const res = await publishAndAssign(version.id, clientId);
+    const res = client
+      ? await assignProgramCopy(version.id, client.id, client.full_name)
+      : await publishAndAssign(version.id, null);
     setBusy(false);
     if (res && "error" in res && res.error) return setError(res.error);
     setPublishOpen(false);
@@ -205,13 +221,54 @@ export function ProgramBuilder({
         </div>
       </div>
 
+      {/* Plan description + weeks */}
+      <div className="mt-4 grid gap-2">
+        <textarea
+          className="input"
+          rows={2}
+          placeholder="Plan description — what this plan is for, how to approach it..."
+          defaultValue={version.programs.description ?? ""}
+          onBlur={(e) => {
+            updateProgramMeta(version.programs.id, { description: e.target.value || null });
+            flashSaved();
+          }}
+        />
+        <div className="flex items-center justify-between gap-3">
+          <label className="flex items-center gap-2" style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
+            Weeks
+            <input
+              className="input metric"
+              style={{ width: 64, minHeight: 38 }}
+              inputMode="numeric"
+              defaultValue={weeks}
+              onBlur={(e) => {
+                const w = Math.max(1, Math.min(16, parseInt(e.target.value, 10) || 4));
+                setWeeks(w);
+                updateProgramMeta(version.programs.id, { weeks: w });
+                flashSaved();
+              }}
+            />
+          </label>
+          <div className="seg" role="tablist">
+            <button type="button" className="seg__opt" aria-pressed={view === "days"} onClick={() => setView("days")}>
+              Build days
+            </button>
+            <button type="button" className="seg__opt" aria-pressed={view === "weeks"} onClick={() => setView("weeks")}>
+              Week progression
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {view === "weeks" ? (
+        <ProgressionGrid days={days} weeks={weeks} onSaved={flashSaved} setDays={setDays} />
+      ) : (
+        <>
       {/* Day strip */}
       <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
         {days.map((d) => (
           <button key={d.id} type="button" className="day-chip" aria-pressed={d.id === day.id} onClick={() => setActiveDayId(d.id)}>
-            <small>
-              Week {d.week} Day {d.day}
-            </small>
+            <small>Day {d.day}</small>
             <span className="metric">{d.day_blocks.reduce((a, b) => a + b.block_exercises.length, 0)}</span>
             <small>{d.day_blocks.length ? "exercises" : "empty"}</small>
           </button>
@@ -311,15 +368,36 @@ export function ProgramBuilder({
                         />
                       </div>
                     </div>
-                    <label className="mt-2 flex items-center gap-2" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        defaultChecked={be.optional}
-                        style={{ width: 16, height: 16, accentColor: "var(--pink-500)" }}
-                        onChange={(e) => onFieldChange(block.id, be.id, { optional: e.target.checked })}
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <label className="flex items-center gap-2" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          defaultChecked={be.optional}
+                          style={{ width: 16, height: 16, accentColor: "var(--pink-500)" }}
+                          onChange={(e) => onFieldChange(block.id, be.id, { optional: e.target.checked })}
+                        />
+                        Optional exercise
+                      </label>
+                      {!be.directions && !directionsOpen[be.id] && (
+                        <button
+                          type="button"
+                          className="btn btn--quiet btn--sm"
+                          style={{ minHeight: 30, fontSize: 10 }}
+                          onClick={() => setDirectionsOpen((prev) => ({ ...prev, [be.id]: true }))}
+                        >
+                          + Directions
+                        </button>
+                      )}
+                    </div>
+                    {(be.directions || directionsOpen[be.id]) && (
+                      <textarea
+                        className="input mt-2"
+                        rows={2}
+                        placeholder="Specific directions for this exercise (this client's goal, tempo, form focus...)"
+                        defaultValue={be.directions ?? ""}
+                        onBlur={(e) => onFieldChange(block.id, be.id, { directions: e.target.value || null })}
                       />
-                      Optional exercise
-                    </label>
+                    )}
                   </div>
                 ))}
 
@@ -333,6 +411,8 @@ export function ProgramBuilder({
           + Add block
         </button>
       </div>
+        </>
+      )}
 
       {error && (
         <p role="alert" className="mt-3" style={{ color: "var(--danger)", fontSize: "var(--text-sm)" }}>
@@ -360,16 +440,16 @@ export function ProgramBuilder({
           <div className="card w-full max-w-[420px]" style={{ borderRadius: "var(--radius-sheet)", margin: "var(--space-4)" }}>
             <h2 style={{ fontSize: "var(--text-lg)" }}>Send it to a client</h2>
             <p className="mt-2" style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
-              Publishing locks this version so logged workouts never change meaning.
+              Assigning gives the client their own private copy — this library plan stays untouched for reuse.
             </p>
             <div className="mt-4 grid gap-2">
               {clients.map((c) => (
-                <button key={c.id} type="button" className="btn btn--quiet w-full" onClick={() => onPublish(c.id)} disabled={busy}>
-                  {c.full_name}
+                <button key={c.id} type="button" className="btn btn--quiet w-full" onClick={() => onPublish(c)} disabled={busy}>
+                  {busy ? "Copying..." : c.full_name}
                 </button>
               ))}
               <button type="button" className="btn btn--ghost w-full" onClick={() => onPublish(null)} disabled={busy}>
-                Publish without assigning
+                Save to library only
               </button>
             </div>
             <button type="button" className="btn btn--quiet btn--sm mt-4 w-full" onClick={() => setPublishOpen(false)}>
@@ -455,6 +535,142 @@ function ExercisePicker({
           )
         )}
       </div>
+    </div>
+  );
+}
+
+/* ---- Week progression grid: rows = exercises per day, cols = weeks.
+   Week 1 edits the base exercise; weeks 2+ write overrides (blank = same as base). ---- */
+function ProgressionGrid({
+  days,
+  weeks,
+  onSaved,
+  setDays,
+}: {
+  days: Day[];
+  weeks: number;
+  onSaved: () => void;
+  setDays: React.Dispatch<React.SetStateAction<Day[]>>;
+}) {
+  function ovFor(be: BlockExercise, week: number): Override | undefined {
+    return be.program_week_overrides?.find((o) => o.week === week);
+  }
+
+  function patchBe(beId: string, fn: (e: BlockExercise) => BlockExercise) {
+    setDays((prev) =>
+      prev.map((d) => ({
+        ...d,
+        day_blocks: d.day_blocks.map((b) => ({
+          ...b,
+          block_exercises: b.block_exercises.map((e) => (e.id === beId ? fn(e) : e)),
+        })),
+      })),
+    );
+  }
+
+  async function saveCell(be: BlockExercise, week: number, field: "sets" | "rep_range" | "target_weight_lbs", raw: string) {
+    if (week === 1) {
+      const val = field === "rep_range" ? raw || "8-10" : raw ? (field === "sets" ? parseInt(raw, 10) : parseFloat(raw)) : null;
+      patchBe(be.id, (e) => ({ ...e, [field]: val }) as BlockExercise);
+      await updateBlockExercise(be.id, { [field]: val } as never);
+      onSaved();
+      return;
+    }
+    const existing = ovFor(be, week);
+    const next: Override = {
+      week,
+      sets: existing?.sets ?? null,
+      rep_range: existing?.rep_range ?? null,
+      target_weight_lbs: existing?.target_weight_lbs ?? null,
+      [field]: raw === "" ? null : field === "sets" ? parseInt(raw, 10) || null : field === "rep_range" ? raw : parseFloat(raw) || null,
+    };
+    patchBe(be.id, (e) => ({
+      ...e,
+      program_week_overrides: [...(e.program_week_overrides ?? []).filter((o) => o.week !== week), next],
+    }));
+    await setWeekOverride(be.id, week, { sets: next.sets, rep_range: next.rep_range, target_weight_lbs: next.target_weight_lbs });
+    onSaved();
+  }
+
+  return (
+    <div className="mt-5 grid gap-5">
+      <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
+        Each day repeats every week. Tweak sets, reps, or weight for any week — blank cells inherit week 1.
+      </p>
+      {days.map((d) => {
+        const rows = [...d.day_blocks]
+          .sort((a, b) => a.position - b.position)
+          .flatMap((b) => [...b.block_exercises].sort((a, z) => a.position - z.position));
+        if (rows.length === 0) return null;
+        return (
+          <section key={d.id} className="glass" style={{ padding: "var(--space-4)", overflowX: "auto" }}>
+            <h2 className="eyebrow" style={{ color: "var(--text-strong)" }}>
+              Day {d.day} · {d.title}
+            </h2>
+            <table className="mt-3" style={{ borderCollapse: "collapse", minWidth: 140 + weeks * 150 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", fontSize: 10, color: "var(--text-faint)", fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.08em", paddingBottom: 8 }}>Exercise</th>
+                  {Array.from({ length: weeks }).map((_, i) => (
+                    <th key={i} style={{ fontSize: 10, color: "var(--text-faint)", fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.08em", paddingBottom: 8, paddingLeft: 8 }}>
+                      Week {i + 1}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((be) => (
+                  <tr key={be.id} style={{ borderTop: "var(--rule-hairline)" }}>
+                    <td style={{ fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-strong)", padding: "8px 8px 8px 0", maxWidth: 140 }}>
+                      {be.exercise_name}
+                    </td>
+                    {Array.from({ length: weeks }).map((_, i) => {
+                      const week = i + 1;
+                      const ov = week === 1 ? undefined : ovFor(be, week);
+                      const val = (f: "sets" | "rep_range" | "target_weight_lbs") =>
+                        week === 1 ? (be[f] ?? "") : (ov?.[f] ?? "");
+                      const ph = (f: "sets" | "rep_range" | "target_weight_lbs") =>
+                        week === 1 ? "" : String(be[f] ?? "");
+                      return (
+                        <td key={week} style={{ padding: "6px 0 6px 8px" }}>
+                          <div className="flex gap-1">
+                            <input
+                              className="input metric"
+                              style={{ width: 38, minHeight: 34, padding: 4, fontSize: 12, textAlign: "center", opacity: week > 1 && !ov?.sets ? 0.55 : 1 }}
+                              inputMode="numeric"
+                              aria-label={`${be.exercise_name} week ${week} sets`}
+                              defaultValue={val("sets")}
+                              placeholder={ph("sets") || "sets"}
+                              onBlur={(e) => saveCell(be, week, "sets", e.target.value)}
+                            />
+                            <input
+                              className="input metric"
+                              style={{ width: 52, minHeight: 34, padding: 4, fontSize: 12, textAlign: "center", opacity: week > 1 && !ov?.rep_range ? 0.55 : 1 }}
+                              aria-label={`${be.exercise_name} week ${week} reps`}
+                              defaultValue={val("rep_range")}
+                              placeholder={ph("rep_range") || "reps"}
+                              onBlur={(e) => saveCell(be, week, "rep_range", e.target.value)}
+                            />
+                            <input
+                              className="input metric"
+                              style={{ width: 46, minHeight: 34, padding: 4, fontSize: 12, textAlign: "center", opacity: week > 1 && ov?.target_weight_lbs == null ? 0.55 : 1 }}
+                              inputMode="decimal"
+                              aria-label={`${be.exercise_name} week ${week} weight`}
+                              defaultValue={val("target_weight_lbs")}
+                              placeholder={ph("target_weight_lbs") || "lbs"}
+                              onBlur={(e) => saveCell(be, week, "target_weight_lbs", e.target.value)}
+                            />
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        );
+      })}
     </div>
   );
 }

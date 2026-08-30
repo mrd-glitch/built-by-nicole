@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { logFood } from "@/lib/actions";
+import { FoodPicker, type PickedFood } from "@/components/FoodPicker";
 
 interface FoodLogRow {
   id: string;
@@ -10,6 +11,10 @@ interface FoodLogRow {
   note: string;
   storage_path: string | null;
   created_at: string;
+  calories?: number | null;
+  protein?: number | null;
+  carbs?: number | null;
+  fats?: number | null;
 }
 
 export function FoodJournal({ initial }: { initial: FoodLogRow[] }) {
@@ -18,6 +23,8 @@ export function FoodJournal({ initial }: { initial: FoodLogRow[] }) {
   const [mealLabel, setMealLabel] = useState("");
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [macros, setMacros] = useState<PickedFood | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,17 +46,24 @@ export function FoodJournal({ initial }: { initial: FoodLogRow[] }) {
       }
     }
 
-    const res = await logFood(mealLabel, note, storagePath);
+    const res = await logFood(
+      mealLabel,
+      note || (macros ? `${macros.name} (${macros.portion})` : ""),
+      storagePath,
+      macros ? { calories: macros.calories, protein: macros.protein, carbs: macros.carbs, fats: macros.fats } : null,
+    );
     setBusy(false);
     if (res?.error) return setError(res.error);
     setLogs([
       ...logs,
-      { id: `tmp-${Date.now()}`, meal_label: mealLabel, note, storage_path: storagePath, created_at: new Date().toISOString() },
+      { id: `tmp-${Date.now()}`, meal_label: mealLabel, note: note || (macros ? macros.name : ""), storage_path: storagePath, created_at: new Date().toISOString(), calories: macros?.calories, protein: macros?.protein, carbs: macros?.carbs, fats: macros?.fats },
     ]);
     setMealLabel("");
     setNote("");
     setFile(null);
+    setMacros(null);
     setOpen(false);
+    window.location.reload();
   }
 
   return (
@@ -77,6 +91,7 @@ export function FoodJournal({ initial }: { initial: FoodLogRow[] }) {
               <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
                 {f.note} · {new Date(f.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                 {f.storage_path ? " · photo" : ""}
+                {f.calories != null ? ` · ${f.calories} kcal` : ""}
               </p>
             </div>
           </div>
@@ -97,6 +112,19 @@ export function FoodJournal({ initial }: { initial: FoodLogRow[] }) {
             </label>
             <input id="meal-note" className="input" placeholder="Chicken + rice" value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
+          <button type="button" className="btn btn--quiet" onClick={() => setPickerOpen(true)}>
+            {macros ? `Macros: ${macros.calories} kcal · P${macros.protein} C${macros.carbs} F${macros.fats}` : "Look up macros (optional)"}
+          </button>
+          {pickerOpen && (
+            <FoodPicker
+              onPick={(f) => {
+                setMacros(f);
+                if (!note.trim()) setNote(`${f.name} (${f.portion})`);
+                setPickerOpen(false);
+              }}
+              onClose={() => setPickerOpen(false)}
+            />
+          )}
           <label className="btn btn--quiet" style={{ cursor: "pointer" }}>
             {file ? "Photo added" : "Add photo"}
             <input

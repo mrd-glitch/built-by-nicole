@@ -16,7 +16,7 @@ export default async function ProgramBuilderPage({
     supabase
       .from("program_versions")
       .select(
-        "id, version, published_at, programs(id, name), program_days(id, week, day, title, position, day_blocks(id, label, rest_note, position, block_exercises(id, exercise_id, exercise_name, sets, rep_range, target_weight_lbs, optional, optional_note, position))), program_assignments(active, profiles(id, full_name))",
+        "id, version, published_at, programs(id, name, description, weeks, days_per_week, is_template), program_days(id, week, day, title, position, day_blocks(id, label, rest_note, position, block_exercises(id, exercise_id, exercise_name, sets, rep_range, target_weight_lbs, optional, optional_note, directions, position, program_week_overrides(week, sets, rep_range, target_weight_lbs)))), program_assignments(active, profiles(id, full_name))",
       )
       .eq("id", versionId)
       .single(),

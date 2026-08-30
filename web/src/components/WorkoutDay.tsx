@@ -24,6 +24,7 @@ export interface DayData {
       optional: boolean;
       optional_note: string | null;
       position: number;
+      directions?: string | null;
       exercises: { youtube_url: string | null; cue: string | null; thumb_path: string | null } | null;
     }[];
   }[];
@@ -42,10 +43,14 @@ export function WorkoutDay({
   day,
   assignmentId,
   lastEntries,
+  week = 1,
+  totalWeeks = 1,
 }: {
   day: DayData;
   assignmentId: string;
   lastEntries: LastEntry[];
+  week?: number;
+  totalWeeks?: number;
 }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [logs, setLogs] = useState<Record<LogKey, { reps: string; weight: string; saved?: boolean }>>({});
@@ -138,7 +143,7 @@ export function WorkoutDay({
       <div className="mt-3 flex items-center justify-between">
         <div>
           <p className="eyebrow eyebrow--accent">
-            Week {day.week} · Day {day.day}
+            Week {week} of {totalWeeks} · Day {day.day}
           </p>
           <h1 style={{ fontSize: "var(--text-2xl)" }}>{day.title}</h1>
         </div>
@@ -216,6 +221,11 @@ export function WorkoutDay({
                   {be.optional_note && (
                     <p className="mt-2" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", fontStyle: "italic" }}>
                       {be.optional_note}
+                    </p>
+                  )}
+                  {be.directions && (
+                    <p className="mt-2" style={{ fontSize: "var(--text-xs)", color: "var(--text-strong)", background: "var(--pink-100)", padding: "8px 10px", borderRadius: "var(--radius-md)" }}>
+                      {be.directions}
                     </p>
                   )}
                   {be.exercises?.cue && (

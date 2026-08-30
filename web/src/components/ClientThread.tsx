@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { sendMessage } from "@/lib/actions";
+import { MediaBubble, MediaComposer } from "@/components/MessageMedia";
 
 interface Msg {
   id: string;
@@ -10,6 +11,8 @@ interface Msg {
   sender_id: string;
   body: string;
   created_at: string;
+  kind?: "text" | "voice" | "video";
+  media_path?: string | null;
 }
 
 export function ClientThread({ clientId, initial }: { clientId: string; initial: Msg[] }) {
@@ -76,7 +79,11 @@ export function ClientThread({ clientId, initial }: { clientId: string; initial:
                 boxShadow: "var(--shadow-1)",
               }}
             >
-              <p style={{ fontSize: "var(--text-base)", lineHeight: "var(--leading-body)" }}>{m.body}</p>
+              {m.kind === "voice" || m.kind === "video" ? (
+                m.media_path ? <MediaBubble path={m.media_path} kind={m.kind} light={mine} /> : null
+              ) : (
+                <p style={{ fontSize: "var(--text-base)", lineHeight: "var(--leading-body)" }}>{m.body}</p>
+              )}
               <p
                 className="metric mt-1"
                 style={{ fontSize: "var(--text-2xs)", color: mine ? "rgb(255 255 255 / 0.7)" : "var(--text-faint)" }}
@@ -89,7 +96,8 @@ export function ClientThread({ clientId, initial }: { clientId: string; initial:
         <div ref={endRef} />
       </div>
 
-      <div className="sticky mt-4 flex gap-2" style={{ bottom: "calc(var(--tabbar-height) + var(--space-4))" }}>
+      <div className="sticky mt-4 flex items-center gap-2" style={{ bottom: "calc(var(--tabbar-height) + var(--space-4))" }}>
+        <MediaComposer clientId={clientId} compact />
         <input
           className="input"
           placeholder="Message Nicole"

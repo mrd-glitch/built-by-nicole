@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseServer } from "@/lib/supabase/server";
 import { buildSnapshot } from "@/lib/snapshot";
+import { checkinWindow } from "@/lib/checkin-window";
 
 /* ---------- helpers ---------- */
 
@@ -200,6 +201,8 @@ export async function submitCheckin(input: {
   comments: string;
   proud?: string;
   excited?: string;
+  energyRating?: number;
+  focusNextWeek?: string;
 }) {
   const supabase = await supabaseServer();
   const {
@@ -207,17 +210,38 @@ export async function submitCheckin(input: {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not signed in" };
   const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user.id).single();
+  const tz = profile?.timezone ?? "America/Edmonton";
+
+  // Sat-Mon window; outside it only a Nicole-reopened week can be submitted.
+  const win = checkinWindow(tz);
+  let targetWeek = win.targetWeek;
+  let late = win.state === "late";
+  if (win.state === "locked") {
+    const { data: reopen } = await supabase
+      .from("checkin_reopens")
+      .select("iso_week")
+      .eq("client_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!reopen) return { error: "Check-in is closed until Saturday. Message Nicole if you need this week reopened." };
+    targetWeek = reopen.iso_week;
+    late = true;
+  }
 
   const { data, error } = await supabase
     .from("checkins")
     .insert({
       client_id: user.id,
-      iso_week: isoWeekOf(new Date(), profile?.timezone ?? "America/Edmonton"),
+      iso_week: targetWeek,
+      late,
       dry_weight_lbs: input.dryWeightLbs,
       meal_rating: input.mealRating,
       meal_note: input.mealNote,
       fitness_rating: input.fitnessRating,
       fitness_note: input.fitnessNote,
+      energy_rating: input.energyRating ?? null,
+      focus_next_week: input.focusNextWeek || null,
       comments: input.comments,
       proud: input.proud || null,
       excited: input.excited || null,
@@ -272,7 +296,12 @@ export async function sendMessage(clientId: string, body: string) {
 
 /* ---------- food journal ---------- */
 
-export async function logFood(mealLabel: string, note: string, storagePath: string | null) {
+export async function logFood(
+  mealLabel: string,
+  note: string,
+  storagePath: string | null,
+  macros?: { calories: number; protein: number; carbs: number; fats: number } | null,
+) {
   const supabase = await supabaseServer();
   const {
     data: { user },
@@ -283,8 +312,91 @@ export async function logFood(mealLabel: string, note: string, storagePath: stri
     meal_label: mealLabel.slice(0, 60),
     note: note.slice(0, 500),
     storage_path: storagePath,
+    calories: macros?.calories ?? null,
+    protein: macros?.protein ?? null,
+    carbs: macros?.carbs ?? null,
+    fats: macros?.fats ?? null,
   });
   if (error) return { error: error.message };
   revalidatePath("/app/nutrition");
+  return { ok: true };
+}
+
+/* ---------- meal check-offs ---------- */
+
+export async function checkoffMeal(
+  mealId: string,
+  status: "ate_as_written" | "custom",
+  customItems?: { meal_item_id?: string | null; name: string; calories: number; protein: number; carbs: number; fats: number }[],
+) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in" };
+  const today = new Date().toISOString().slice(0, 10);
+  // replace any existing checkoff for this meal today
+  await supabase.from("meal_checkoffs").delete().eq("client_id", user.id).eq("log_date", today).eq("meal_id", mealId);
+  const { data, error } = await supabase
+    .from("meal_checkoffs")
+    .insert({ client_id: user.id, log_date: today, meal_id: mealId, status })
+    .select("id")
+    .single();
+  if (error) return { error: error.message };
+  if (status === "custom" && customItems?.length) {
+    const rows = customItems.map((i) => ({ ...i, checkoff_id: data.id, client_id: user.id }));
+    const { error: iErr } = await supabase.from("meal_checkoff_items").insert(rows);
+    if (iErr) return { error: iErr.message };
+  }
+  revalidatePath("/app/nutrition");
+  return { ok: true, checkoffId: data.id as string };
+}
+
+export async function undoCheckoff(checkoffId: string) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in" };
+  await supabase.from("meal_checkoffs").delete().eq("id", checkoffId).eq("client_id", user.id);
+  revalidatePath("/app/nutrition");
+  return { ok: true };
+}
+
+/* Reopen a locked check-in week for a client (admin only via RLS). */
+export async function reopenCheckin(clientId: string, isoWeek: string) {
+  const supabase = await supabaseServer();
+  const { error } = await supabase.from("checkin_reopens").upsert({ client_id: clientId, iso_week: isoWeek }, { onConflict: "client_id,iso_week" });
+  if (error) return { error: error.message };
+  revalidatePath(`/admin/clients/${clientId}`);
+  return { ok: true };
+}
+
+/* ---------- media messages (voice / video) ---------- */
+
+export async function sendMediaMessage(
+  clientId: string,
+  kind: "voice" | "video",
+  mediaPath: string,
+  durationSeconds: number | null,
+) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in" };
+  const isSelf = user.id === clientId;
+  const { error } = await supabase.from("messages").insert({
+    client_id: clientId,
+    sender_id: user.id,
+    body: "",
+    kind,
+    media_path: mediaPath,
+    duration_seconds: durationSeconds,
+    read_by_client: isSelf,
+    read_by_admin: !isSelf,
+  });
+  if (error) return { error: error.message };
+  revalidatePath(isSelf ? "/app/messages" : `/admin/clients/${clientId}`);
   return { ok: true };
 }

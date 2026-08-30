@@ -37,7 +37,7 @@ export async function getClientHome(clientId: string) {
           .limit(12),
         supabase
           .from("program_assignments")
-          .select("id, start_date, version_id, program_versions(id, program_id, programs(name), program_days(id, week, day, title, position))")
+          .select("id, start_date, version_id, program_versions(id, program_id, programs(name, description, weeks, days_per_week), program_days(id, week, day, title, position))")
           .eq("client_id", clientId)
           .eq("active", true)
           .maybeSingle(),
@@ -77,7 +77,7 @@ export async function getProgramDay(dayId: string) {
   return safe(async () => {
     const { data: day } = await supabase
       .from("program_days")
-      .select("id, week, day, title, version_id, day_blocks(id, label, rest_note, position, block_exercises(id, exercise_id, exercise_name, sets, rep_range, target_weight_lbs, optional, optional_note, position, exercises(youtube_url, cue, thumb_path)))")
+      .select("id, week, day, title, version_id, day_blocks(id, label, rest_note, position, block_exercises(id, exercise_id, exercise_name, sets, rep_range, target_weight_lbs, optional, optional_note, directions, position, exercises(youtube_url, cue, thumb_path), program_week_overrides(week, sets, rep_range, target_weight_lbs)))")
       .eq("id", dayId)
       .single();
     return day ?? null;
@@ -103,12 +103,24 @@ export async function getMealPlanFor(clientId: string) {
   return safe(async () => {
     const { data } = await supabase
       .from("meal_plan_assignments")
-      .select("id, meal_plan_versions(id, intro, pdf_path, pdf_name, meal_plans(name), meals(id, name, note, position, meal_items(id, name, portion, protein, carbs, fats, calories, position)))")
+      .select("id, meal_plan_versions(id, intro, pdf_path, pdf_name, meal_plans(name, target_calories, target_mode, target_protein_g, target_carbs_g, target_fat_g, target_protein_pct, target_carbs_pct, target_fat_pct), meals(id, name, note, position, meal_items(id, name, portion, protein, carbs, fats, calories, position)))")
       .eq("client_id", clientId)
       .eq("active", true)
       .maybeSingle();
     return data ?? null;
   }, null);
+}
+
+export async function getCheckoffsToday(clientId: string) {
+  const supabase = await supabaseServer();
+  return safe(async () => {
+    const { data } = await supabase
+      .from("meal_checkoffs")
+      .select("id, meal_id, status, meal_checkoff_items(id, name, calories, protein, carbs, fats)")
+      .eq("client_id", clientId)
+      .eq("log_date", new Date().toISOString().slice(0, 10));
+    return data ?? [];
+  }, []);
 }
 
 export async function getFoodLogsToday(clientId: string) {
@@ -168,14 +180,44 @@ export async function getClientDetail(clientId: string) {
   const supabase = await supabaseServer();
   return safe(
     async () => {
-      const [profile, checkins, msgs] = await Promise.all([
+      const [profile, checkins, msgs, programAssignment, mealAssignment, programTemplates, mealTemplates] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", clientId).single(),
         supabase.from("checkins").select("*, checkin_photos(pose, storage_path)").eq("client_id", clientId).order("submitted_at", { ascending: false }).limit(8),
         supabase.from("messages").select("*").eq("client_id", clientId).order("created_at").limit(100),
+        supabase
+          .from("program_assignments")
+          .select("id, start_date, version_id, program_versions(id, programs(id, name, description, weeks, days_per_week))")
+          .eq("client_id", clientId)
+          .eq("active", true)
+          .maybeSingle(),
+        supabase
+          .from("meal_plan_assignments")
+          .select("id, version_id, meal_plan_versions(id, meal_plans(id, name, target_calories))")
+          .eq("client_id", clientId)
+          .eq("active", true)
+          .maybeSingle(),
+        supabase
+          .from("programs")
+          .select("id, name, weeks, days_per_week, program_versions(id, version)")
+          .eq("is_template", true)
+          .order("name"),
+        supabase
+          .from("meal_plans")
+          .select("id, name, target_calories, meal_plan_versions(id, version)")
+          .eq("is_template", true)
+          .order("name"),
       ]);
-      return { profile: profile.data, checkins: checkins.data ?? [], messages: msgs.data ?? [] };
+      return {
+        profile: profile.data,
+        checkins: checkins.data ?? [],
+        messages: msgs.data ?? [],
+        programAssignment: programAssignment.data ?? null,
+        mealAssignment: mealAssignment.data ?? null,
+        programTemplates: programTemplates.data ?? [],
+        mealTemplates: mealTemplates.data ?? [],
+      };
     },
-    { profile: null, checkins: [], messages: [] },
+    { profile: null, checkins: [], messages: [], programAssignment: null, mealAssignment: null, programTemplates: [], mealTemplates: [] },
   );
 }
 
@@ -199,4 +241,11 @@ export async function getExercises() {
     const { data } = await supabase.from("exercises").select("*").eq("archived", false).order("name");
     return data ?? [];
   }, []);
+}
+
+/* Current program week for an assignment (1-based, clamped to plan length). */
+export function currentWeek(startDate: string, weeks: number): number {
+  const start = new Date(startDate + "T00:00:00");
+  const diffDays = Math.floor((Date.now() - start.getTime()) / 86400000);
+  return Math.min(Math.max(Math.floor(diffDays / 7) + 1, 1), Math.max(weeks, 1));
 }

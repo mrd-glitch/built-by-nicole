@@ -35,7 +35,17 @@ function Rating({ label, value, onChange }: { label: string; value: number; onCh
 const poses = ["front", "side", "back"] as const;
 type Pose = (typeof poses)[number];
 
-export function CheckinFlow({ history, alreadyThisWeek }: { history: CheckinRow[]; alreadyThisWeek: boolean }) {
+export function CheckinFlow({
+  history,
+  alreadyThisWeek,
+  windowState = "open",
+  targetWeek,
+}: {
+  history: CheckinRow[];
+  alreadyThisWeek: boolean;
+  windowState?: "open" | "late" | "locked";
+  targetWeek?: string;
+}) {
   const [step, setStep] = useState(0);
   const [weight, setWeight] = useState("");
   const [photos, setPhotos] = useState<Partial<Record<Pose, File>>>({});
@@ -46,6 +56,8 @@ export function CheckinFlow({ history, alreadyThisWeek }: { history: CheckinRow[
   const [comments, setComments] = useState("");
   const [proud, setProud] = useState("");
   const [excited, setExcited] = useState("");
+  const [energy, setEnergy] = useState(0);
+  const [focus, setFocus] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photoWarning, setPhotoWarning] = useState<string | null>(null);
@@ -63,6 +75,8 @@ export function CheckinFlow({ history, alreadyThisWeek }: { history: CheckinRow[
       comments,
       proud,
       excited,
+      energyRating: energy || undefined,
+      focusNextWeek: focus,
     });
     if (res?.error || !res?.checkinId) {
       setBusy(false);
@@ -102,13 +116,23 @@ export function CheckinFlow({ history, alreadyThisWeek }: { history: CheckinRow[
         <div className="card card--invert mt-5" style={{ padding: "var(--space-5)" }}>
           {alreadyThisWeek ? (
             <p style={{ color: "var(--paper-50)", fontSize: "var(--text-base)" }}>
-              This week&apos;s check-in is in. Nicole has it. Next one opens Sunday.
+              This week&apos;s check-in is in. Nicole has it. Next one opens Saturday.
+            </p>
+          ) : windowState === "locked" ? (
+            <p style={{ color: "var(--paper-50)", fontSize: "var(--text-base)" }}>
+              Check-in opens Saturday morning and closes Monday night. If life got in the way this
+              week, message Nicole — she can reopen it for you.
             </p>
           ) : (
             <>
               <p style={{ color: "var(--paper-50)", fontSize: "var(--text-base)" }}>
-                Takes about five minutes: weight, three photos, two honest ratings.
+                Takes about five minutes: weight, three photos, a few honest taps.
               </p>
+              {windowState === "late" && (
+                <p className="mt-2" style={{ color: "var(--highlight)", fontSize: "var(--text-sm)" }}>
+                  This one counts for last week{targetWeek ? ` (${targetWeek})` : ""} — marked as a late check-in.
+                </p>
+              )}
               <button type="button" className="btn btn--highlight mt-4 w-full" onClick={() => setStep(1)}>
                 Start check-in
               </button>
@@ -254,17 +278,14 @@ export function CheckinFlow({ history, alreadyThisWeek }: { history: CheckinRow[
             <Rating label="Fitness plan this week" value={fitRating} onChange={setFitRating} />
             <textarea className="input" placeholder="Workouts done? Anything hurt?" value={fitNote} onChange={(e) => setFitNote(e.target.value)} />
           </div>
+          <div className="glass grid gap-3">
+            <Rating label="Energy and sleep this week" value={energy} onChange={setEnergy} />
+          </div>
         </div>
       )}
 
       {step === 4 && (
         <div className="mt-5 grid gap-4">
-          <div>
-            <label className="field-label" htmlFor="comments">
-              Comments, questions, concerns
-            </label>
-            <textarea id="comments" className="input" value={comments} onChange={(e) => setComments(e.target.value)} />
-          </div>
           <div>
             <label className="field-label" htmlFor="proud">
               What actions were you proud of? <span style={{ color: "var(--text-faint)" }}>(optional)</span>
@@ -276,6 +297,18 @@ export function CheckinFlow({ history, alreadyThisWeek }: { history: CheckinRow[
               What are you excited for next week? <span style={{ color: "var(--text-faint)" }}>(optional)</span>
             </label>
             <textarea id="excited" className="input" value={excited} onChange={(e) => setExcited(e.target.value)} />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="focus">
+              What&apos;s one thing you&apos;ll focus on or change — even just 1% — to get closer to your goals this week?
+            </label>
+            <textarea id="focus" className="input" placeholder="One small thing counts." value={focus} onChange={(e) => setFocus(e.target.value)} />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="comments">
+              Anything else for Nicole? <span style={{ color: "var(--text-faint)" }}>(optional)</span>
+            </label>
+            <textarea id="comments" className="input" value={comments} onChange={(e) => setComments(e.target.value)} />
           </div>
         </div>
       )}
@@ -298,7 +331,8 @@ export function CheckinFlow({ history, alreadyThisWeek }: { history: CheckinRow[
             busy ||
             (step === 1 && (!weight.trim() || isNaN(parseFloat(weight)))) ||
             (step === 2 && poses.some((p) => !photos[p])) ||
-            (step === 3 && (!mealRating || !fitRating))
+            (step === 3 && (!mealRating || !fitRating || !energy)) ||
+            (step === 4 && !focus.trim())
           }
         >
           {busy ? "Sending..." : step === 4 ? "Submit check-in" : "Next"}

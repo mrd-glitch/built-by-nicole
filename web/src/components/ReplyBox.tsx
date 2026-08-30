@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { sendMessage } from "@/lib/actions";
+import { MediaComposer } from "@/components/MessageMedia";
 
 export function ReplyBox({ clientId, placeholder }: { clientId: string; placeholder: string }) {
   const [draft, setDraft] = useState("");
@@ -20,7 +21,8 @@ export function ReplyBox({ clientId, placeholder }: { clientId: string; placehol
 
   return (
     <div>
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
+        <MediaComposer clientId={clientId} compact />
         <input
           className="input"
           placeholder={placeholder}

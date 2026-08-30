@@ -9,6 +9,7 @@ export function NewProgramButton() {
   const [name, setName] = useState("");
   const [weeks, setWeeks] = useState(4);
   const [daysPerWeek, setDaysPerWeek] = useState(2);
+  const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -17,7 +18,7 @@ export function NewProgramButton() {
     if (!name.trim() || busy) return;
     setBusy(true);
     setError(null);
-    const res = await createProgram(name.trim(), weeks, daysPerWeek);
+    const res = await createProgram(name.trim(), weeks, daysPerWeek, description.trim() || undefined);
     setBusy(false);
     if (res && "error" in res && res.error) return setError(res.error);
     if (res && "versionId" in res) router.push(`/admin/programs/${res.versionId}`);
@@ -51,11 +52,22 @@ export function NewProgramButton() {
           onChange={(e) => setName(e.target.value)}
           autoFocus
         />
+        <label className="field-label mt-4" htmlFor="prog-desc">
+          Description (optional)
+        </label>
+        <textarea
+          id="prog-desc"
+          className="input"
+          rows={2}
+          placeholder="This plan encompasses..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div>
             <span className="field-label">Weeks</span>
             <div className="flex gap-1">
-              {[2, 4, 6].map((w) => (
+              {[2, 4, 6, 8].map((w) => (
                 <button
                   key={w}
                   type="button"
@@ -70,7 +82,7 @@ export function NewProgramButton() {
           <div>
             <span className="field-label">Days / week</span>
             <div className="flex gap-1">
-              {[2, 3, 4].map((d) => (
+              {[2, 3, 4, 5].map((d) => (
                 <button
                   key={d}
                   type="button"
@@ -90,7 +102,7 @@ export function NewProgramButton() {
         )}
         <div className="mt-6 flex gap-2">
           <button type="button" className="btn btn--primary flex-1" onClick={create} disabled={busy || !name.trim()}>
-            {busy ? "Creating..." : `Create ${weeks * daysPerWeek} workouts`}
+            {busy ? "Creating..." : `Build ${daysPerWeek} workouts (repeat ${weeks} weeks)`}
           </button>
           <button type="button" className="btn btn--quiet" onClick={() => setOpen(false)} disabled={busy}>
             Cancel

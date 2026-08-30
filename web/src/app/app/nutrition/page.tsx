@@ -1,7 +1,9 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { getFoodLogsToday, getMealPlanFor, getSessionUser } from "@/lib/data";
+import { getCheckoffsToday, getFoodLogsToday, getMealPlanFor, getSessionUser } from "@/lib/data";
 import { FoodJournal } from "@/components/FoodJournal";
+import { MealCheckoff } from "@/components/MealCheckoff";
+import { MacroDials } from "@/components/builder/MealPlanBuilder";
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +28,10 @@ interface MealRow {
 export default async function NutritionPage() {
   const session = await getSessionUser();
   if (!session) redirect("/login");
-  const [assignment, foodLogs] = await Promise.all([
+  const [assignment, foodLogs, checkoffs] = await Promise.all([
     getMealPlanFor(session.user.id),
     getFoodLogsToday(session.user.id),
+    getCheckoffsToday(session.user.id),
   ]);
 
   const showMacros = session.profile?.show_macros ?? false;
@@ -39,10 +42,60 @@ export default async function NutritionPage() {
     intro: string | null;
     pdf_name: string | null;
     pdf_path: string | null;
-    meal_plans: { name: string } | null;
+    meal_plans: {
+      name: string;
+      target_calories: number | null;
+      target_mode: "percent" | "grams";
+      target_protein_g: number | null;
+      target_carbs_g: number | null;
+      target_fat_g: number | null;
+      target_protein_pct: number | null;
+      target_carbs_pct: number | null;
+      target_fat_pct: number | null;
+    } | null;
     meals: MealRow[];
   } | null;
   const meals = (version?.meals ?? []).sort((a, b) => a.position - b.position);
+
+  // Today's eaten totals: checked meals (as-written = full plan items; custom = its items) + journal extras
+  const checkoffByMeal = new Map(checkoffs.map((c) => [c.meal_id, c]));
+  const eaten = { kcal: 0, p: 0, c: 0, f: 0 };
+  for (const c of checkoffs) {
+    if (c.status === "ate_as_written") {
+      const meal = meals.find((m) => m.id === c.meal_id);
+      for (const it of meal?.meal_items ?? []) {
+        eaten.kcal += it.calories ?? 0;
+        eaten.p += it.protein ?? 0;
+        eaten.c += it.carbs ?? 0;
+        eaten.f += it.fats ?? 0;
+      }
+    } else {
+      for (const it of c.meal_checkoff_items ?? []) {
+        eaten.kcal += it.calories ?? 0;
+        eaten.p += it.protein ?? 0;
+        eaten.c += it.carbs ?? 0;
+        eaten.f += it.fats ?? 0;
+      }
+    }
+  }
+  for (const l of foodLogs) {
+    eaten.kcal += l.calories ?? 0;
+    eaten.p += l.protein ?? 0;
+    eaten.c += l.carbs ?? 0;
+    eaten.f += l.fats ?? 0;
+  }
+  const mp = version?.meal_plans;
+  const tKcal = mp?.target_calories ?? 0;
+  const targets = mp
+    ? mp.target_mode === "grams"
+      ? { kcal: tKcal, p: mp.target_protein_g ?? 0, c: mp.target_carbs_g ?? 0, f: mp.target_fat_g ?? 0 }
+      : {
+          kcal: tKcal,
+          p: tKcal && mp.target_protein_pct ? Math.round((tKcal * mp.target_protein_pct) / 100 / 4) : 0,
+          c: tKcal && mp.target_carbs_pct ? Math.round((tKcal * mp.target_carbs_pct) / 100 / 4) : 0,
+          f: tKcal && mp.target_fat_pct ? Math.round((tKcal * mp.target_fat_pct) / 100 / 9) : 0,
+        }
+    : { kcal: 0, p: 0, c: 0, f: 0 };
 
   return (
     <main className="page-pad">
@@ -69,6 +122,15 @@ export default async function NutritionPage() {
         <p className="mt-3 card card--sunken" style={{ fontSize: "var(--text-sm)", color: "var(--text-body)", padding: "var(--space-4)" }}>
           {version.intro}
         </p>
+      )}
+
+      {showMacros && version && (targets.kcal > 0 || eaten.kcal > 0) && (
+        <section className="glass mt-4" style={{ padding: "var(--space-4)" }}>
+          <h2 className="eyebrow" style={{ color: "var(--text-strong)" }}>
+            Today so far
+          </h2>
+          <MacroDials totals={eaten} targets={targets} />
+        </section>
       )}
 
       <div className="mt-5 grid gap-3">
@@ -100,6 +162,14 @@ export default async function NutritionPage() {
                   </li>
                 ))}
             </ul>
+            <MealCheckoff
+              mealId={meal.id}
+              items={[...meal.meal_items].sort((a, b) => a.position - b.position)}
+              existing={(() => {
+                const c = checkoffByMeal.get(meal.id);
+                return c ? { id: c.id, status: c.status as "ate_as_written" | "custom" } : null;
+              })()}
+            />
           </section>
         ))}
       </div>

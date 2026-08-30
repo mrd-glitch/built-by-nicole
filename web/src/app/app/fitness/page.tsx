@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { getClientHome, getSessionUser } from "@/lib/data";
+import { currentWeek, getClientHome, getSessionUser } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +18,10 @@ export default async function FitnessPage() {
   if (!session) redirect("/login");
   const { assignment } = await getClientHome(session.user.id);
   const version = assignment?.program_versions as unknown as
-    | { programs: { name: string } | null; program_days: DayRow[] }
+    | { programs: { name: string; description: string | null; weeks: number; days_per_week: number } | null; program_days: DayRow[] }
     | null;
-  const days = (version?.program_days ?? []).sort((a, b) => a.position - b.position || a.week - b.week || a.day - b.day);
+  const days = (version?.program_days ?? []).sort((a, b) => a.position - b.position || a.day - b.day);
+  const week = assignment && version?.programs ? currentWeek(assignment.start_date, version.programs.weeks) : 1;
 
   return (
     <main className="page-pad">
@@ -30,9 +31,17 @@ export default async function FitnessPage() {
           <p className="eyebrow" style={{ color: "var(--pink-300)" }}>
             Your program
           </p>
-          <h1 style={{ fontSize: "var(--text-xl)", color: "var(--paper-50)" }}>{version?.programs?.name ?? "No program yet"}</h1>
+          <div className="flex items-end justify-between gap-2">
+            <h1 style={{ fontSize: "var(--text-xl)", color: "var(--paper-50)" }}>{version?.programs?.name ?? "No program yet"}</h1>
+            {version?.programs && <span className="chip chip--pink">Week {week} of {version.programs.weeks}</span>}
+          </div>
         </div>
       </div>
+      {version?.programs?.description && (
+        <p className="mt-3" style={{ color: "var(--text-strong)", fontSize: "var(--text-sm)", lineHeight: "var(--leading-body)" }}>
+          {version.programs.description}
+        </p>
+      )}
       <p className="mt-3" style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
         {days.length > 0 ? "Tap a day to train and log your sets." : "Nicole is building it. You'll get a message when it's live."}
       </p>
@@ -41,7 +50,7 @@ export default async function FitnessPage() {
         {days.map((d, idx) => (
           <Link
             key={d.id}
-            href={`/app/fitness/${d.id}`}
+            href={`/app/fitness/${d.id}?week=${week}`}
             className="card flex items-center justify-between gap-3"
             style={{ textDecoration: "none", color: "inherit" }}
           >
@@ -61,7 +70,7 @@ export default async function FitnessPage() {
               </span>
               <div>
                 <p style={{ fontFamily: "var(--font-display)", fontWeight: "var(--weight-extrabold)", color: "var(--text-strong)" }}>
-                  Week {d.week} · Day {d.day}
+                  Day {d.day}
                 </p>
                 <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>{d.title}</p>
               </div>
