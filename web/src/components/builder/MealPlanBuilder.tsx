@@ -6,11 +6,14 @@ import { useRouter } from "next/navigation";
 import {
   addMeal,
   addMealItem,
+  addMealOption,
   deleteMeal,
   assignMealPlanCopy,
   publishMealPlan,
   removeMealItem,
+  removeMealOption,
   updateMeal,
+  updateMealOption,
   updateMealPlanMeta,
   updateMealPlanVersion,
 } from "@/lib/actions-builder";
@@ -26,12 +29,24 @@ interface Item {
   calories: number | null;
   position: number;
 }
+interface MealOptionRow {
+  id: string;
+  position: number;
+  text: string;
+  tag: "zero_prep" | "rough_day" | null;
+  calories: number | null;
+  protein: number | null;
+  carbs: number | null;
+  fats: number | null;
+}
 interface Meal {
   id: string;
   name: string;
   note: string | null;
+  chip_text: string | null;
   position: number;
   meal_items: Item[];
+  meal_options: MealOptionRow[];
 }
 interface PlanMeta {
   id: string;
@@ -51,6 +66,15 @@ interface Version {
   version: number;
   published_at: string | null;
   intro: string | null;
+  headline: string | null;
+  metric_value: string | null;
+  metric_label: string | null;
+  metric_note: string | null;
+  mission_title: string | null;
+  mission_body: string | null;
+  callout_title: string | null;
+  callout_body: string | null;
+  closing_note: string | null;
   pdf_name: string | null;
   meal_plans: PlanMeta;
   meals: Meal[];
@@ -77,7 +101,7 @@ export function MealPlanBuilder({ version, clients }: { version: Version; client
     const name = `${kind} ${count}`;
     const res = await addMeal(version.id, name, meals.length + 1);
     if ("mealId" in res && res.mealId) {
-      setMeals([...meals, { id: res.mealId, name, note: null, position: meals.length + 1, meal_items: [] }]);
+      setMeals([...meals, { id: res.mealId, name, note: null, chip_text: null, position: meals.length + 1, meal_items: [], meal_options: [] }]);
       flashSaved();
     }
   }
@@ -181,6 +205,35 @@ export function MealPlanBuilder({ version, clients }: { version: Version; client
           flashSaved();
         }}
       />
+
+      {/* Plan story (PDF-style hero, mission, callout, closing) */}
+      <details className="glass mt-4" style={{ padding: "var(--space-4)" }}>
+        <summary className="eyebrow" style={{ cursor: "pointer", color: "var(--text-strong)" }}>
+          Plan story (hero, mission, callout, sign-off)
+        </summary>
+        <div className="mt-3 grid gap-2">
+          <input className="input" placeholder='Headline — "One number. That&apos;s it."' defaultValue={version.headline ?? ""}
+            onBlur={(e) => { updateMealPlanVersion(version.id, { headline: e.target.value || null }); flashSaved(); }} />
+          <div className="grid grid-cols-2 gap-2">
+            <input className="input metric" placeholder='Big metric — "70g"' defaultValue={version.metric_value ?? ""}
+              onBlur={(e) => { updateMealPlanVersion(version.id, { metric_value: e.target.value || null }); flashSaved(); }} />
+            <input className="input" placeholder='Metric label — "protein a day"' defaultValue={version.metric_label ?? ""}
+              onBlur={(e) => { updateMealPlanVersion(version.id, { metric_label: e.target.value || null }); flashSaved(); }} />
+          </div>
+          <textarea className="input" rows={2} placeholder="Metric note — how it spreads across the day" defaultValue={version.metric_note ?? ""}
+            onBlur={(e) => { updateMealPlanVersion(version.id, { metric_note: e.target.value || null }); flashSaved(); }} />
+          <input className="input" placeholder='Mission title — "Your mission"' defaultValue={version.mission_title ?? ""}
+            onBlur={(e) => { updateMealPlanVersion(version.id, { mission_title: e.target.value || null }); flashSaved(); }} />
+          <textarea className="input" rows={3} placeholder="Mission body" defaultValue={version.mission_body ?? ""}
+            onBlur={(e) => { updateMealPlanVersion(version.id, { mission_body: e.target.value || null }); flashSaved(); }} />
+          <input className="input" placeholder='Callout title — "Easiest option of all"' defaultValue={version.callout_title ?? ""}
+            onBlur={(e) => { updateMealPlanVersion(version.id, { callout_title: e.target.value || null }); flashSaved(); }} />
+          <textarea className="input" rows={2} placeholder="Callout body (dark card under the meals)" defaultValue={version.callout_body ?? ""}
+            onBlur={(e) => { updateMealPlanVersion(version.id, { callout_body: e.target.value || null }); flashSaved(); }} />
+          <input className="input" placeholder='Closing note — "Nothing changes if nothing changes..."' defaultValue={version.closing_note ?? ""}
+            onBlur={(e) => { updateMealPlanVersion(version.id, { closing_note: e.target.value || null }); flashSaved(); }} />
+        </div>
+      </details>
 
       {/* Targets */}
       <section className="glass mt-4" style={{ padding: "var(--space-4)" }}>
@@ -324,6 +377,16 @@ function MealCard({
         aria-label="Meal note"
         onBlur={(e) => e.target.value !== (meal.note ?? "") && onNote(e.target.value)}
       />
+      <input
+        className="mt-1"
+        style={{ border: "var(--rule-hairline)", borderRadius: "var(--radius-full)", background: "var(--surface-sunken)", fontSize: "var(--text-2xs)", padding: "4px 10px", width: 160, fontFamily: "var(--font-display)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}
+        placeholder="~18g · pick one"
+        defaultValue={meal.chip_text ?? ""}
+        aria-label="Section chip text"
+        onBlur={(e) => updateMeal(meal.id, { chip_text: e.target.value || null })}
+      />
+
+      <OptionsEditor mealId={meal.id} initial={meal.meal_options ?? []} />
 
       {[...meal.meal_items]
         .sort((a, b) => a.position - b.position)
@@ -406,6 +469,90 @@ export function MacroDials({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/* "Pick one" options editor: 2-3 alternatives per meal window, tags, AI macro estimate. */
+function OptionsEditor({ mealId, initial }: { mealId: string; initial: MealOptionRow[] }) {
+  const [options, setOptions] = useState<MealOptionRow[]>([...initial].sort((a, b) => a.position - b.position));
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function add() {
+    const res = await addMealOption(mealId, options.length + 1);
+    if ("id" in res && res.id) {
+      setOptions([...options, { id: res.id, position: options.length + 1, text: "", tag: null, calories: null, protein: null, carbs: null, fats: null }]);
+    }
+  }
+
+  async function estimate(opt: MealOptionRow) {
+    if (!opt.text.trim() || busyId) return;
+    setBusyId(opt.id);
+    try {
+      const res = await fetch(`/api/food-search?q=${encodeURIComponent(opt.text.slice(0, 110))}&deep=1`);
+      const json = await res.json();
+      const hit = (json.hits ?? []).find((h: { source: string }) => h.source === "ai") ?? (json.hits ?? [])[0];
+      if (hit) {
+        const fields = { calories: hit.calories, protein: hit.protein, carbs: hit.carbs, fats: hit.fats };
+        setOptions((prev) => prev.map((o) => (o.id === opt.id ? { ...o, ...fields } : o)));
+        await updateMealOption(opt.id, fields);
+      }
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <div className="mt-3 grid gap-2" style={{ borderTop: "var(--rule-hairline)", paddingTop: "var(--space-3)" }}>
+      <p className="eyebrow" style={{ fontSize: 9 }}>Options — client picks one</p>
+      {options.map((opt, i) => (
+        <div key={opt.id} className="grid gap-1" style={{ background: "var(--surface-sunken)", borderRadius: "var(--radius-md)", padding: "var(--space-2)" }}>
+          <div className="flex items-start gap-2">
+            <span className="metric" style={{ fontSize: "var(--text-2xs)", color: "var(--text-faint)", paddingTop: 10 }}>{String(i + 1).padStart(2, "0")}</span>
+            <textarea
+              className="input"
+              rows={2}
+              style={{ minHeight: 40 }}
+              placeholder="Greek yogurt (¾ cup) with a sliced banana..."
+              defaultValue={opt.text}
+              onBlur={(e) => {
+                setOptions((prev) => prev.map((o) => (o.id === opt.id ? { ...o, text: e.target.value } : o)));
+                updateMealOption(opt.id, { text: e.target.value });
+              }}
+            />
+            <button
+              type="button"
+              className="btn btn--quiet btn--sm"
+              aria-label="Remove option"
+              onClick={async () => {
+                setOptions(options.filter((o) => o.id !== opt.id));
+                await removeMealOption(opt.id);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2" style={{ paddingLeft: 24 }}>
+            <select
+              className="input"
+              style={{ minHeight: 32, width: "auto", fontSize: "var(--text-2xs)", padding: "2px 8px" }}
+              aria-label="Option tag"
+              defaultValue={opt.tag ?? ""}
+              onChange={(e) => updateMealOption(opt.id, { tag: (e.target.value || null) as "zero_prep" | "rough_day" | null })}
+            >
+              <option value="">numbered</option>
+              <option value="zero_prep">ZERO PREP</option>
+              <option value="rough_day">ROUGH DAY</option>
+            </select>
+            <button type="button" className="btn btn--quiet btn--sm" style={{ minHeight: 32 }} onClick={() => estimate(opt)} disabled={busyId === opt.id}>
+              {busyId === opt.id ? "Estimating..." : opt.calories != null ? `${opt.calories} kcal · P${opt.protein} C${opt.carbs} F${opt.fats} — re-estimate` : "Estimate macros (AI)"}
+            </button>
+          </div>
+        </div>
+      ))}
+      <button type="button" className="btn btn--ghost btn--sm" onClick={add}>
+        + Add option
+      </button>
     </div>
   );
 }

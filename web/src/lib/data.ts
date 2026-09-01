@@ -103,7 +103,7 @@ export async function getMealPlanFor(clientId: string) {
   return safe(async () => {
     const { data } = await supabase
       .from("meal_plan_assignments")
-      .select("id, meal_plan_versions(id, intro, pdf_path, pdf_name, meal_plans(name, target_calories, target_mode, target_protein_g, target_carbs_g, target_fat_g, target_protein_pct, target_carbs_pct, target_fat_pct), meals(id, name, note, position, meal_items(id, name, portion, protein, carbs, fats, calories, position)))")
+      .select("id, meal_plan_versions(id, intro, pdf_path, pdf_name, headline, metric_value, metric_label, metric_note, mission_title, mission_body, callout_title, callout_body, closing_note, meal_plans(name, target_calories, target_mode, target_protein_g, target_carbs_g, target_fat_g, target_protein_pct, target_carbs_pct, target_fat_pct), meals(id, name, note, chip_text, position, meal_items(id, name, portion, protein, carbs, fats, calories, position), meal_options(id, position, text, tag, calories, protein, carbs, fats)))")
       .eq("client_id", clientId)
       .eq("active", true)
       .maybeSingle();
@@ -116,7 +116,7 @@ export async function getCheckoffsToday(clientId: string) {
   return safe(async () => {
     const { data } = await supabase
       .from("meal_checkoffs")
-      .select("id, meal_id, status, meal_checkoff_items(id, name, calories, protein, carbs, fats)")
+      .select("id, meal_id, status, option_id, meal_checkoff_items(id, name, calories, protein, carbs, fats)")
       .eq("client_id", clientId)
       .eq("log_date", new Date().toISOString().slice(0, 10));
     return data ?? [];
@@ -248,4 +248,18 @@ export function currentWeek(startDate: string, weeks: number): number {
   const start = new Date(startDate + "T00:00:00");
   const diffDays = Math.floor((Date.now() - start.getTime()) / 86400000);
   return Math.min(Math.max(Math.floor(diffDays / 7) + 1, 1), Math.max(weeks, 1));
+}
+
+export async function getDailyWeights(clientId: string, days = 90) {
+  const supabase = await supabaseServer();
+  return safe(async () => {
+    const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from("daily_weights")
+      .select("weigh_date, weight_lbs")
+      .eq("client_id", clientId)
+      .gte("weigh_date", since)
+      .order("weigh_date");
+    return data ?? [];
+  }, []);
 }

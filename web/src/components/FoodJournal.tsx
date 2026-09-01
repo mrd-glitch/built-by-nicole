@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { logFood } from "@/lib/actions";
 import { FoodPicker, type PickedFood } from "@/components/FoodPicker";
+import { useEffect } from "react";
 
 interface FoodLogRow {
   id: string;
@@ -76,16 +77,7 @@ export function FoodJournal({ initial }: { initial: FoodLogRow[] }) {
       <div className="mt-3 grid gap-2">
         {logs.map((f) => (
           <div key={f.id} className="card flex items-center gap-3" style={{ padding: "var(--space-3)" }}>
-            <div
-              className="flex items-center justify-center"
-              style={{ width: 48, height: 48, borderRadius: "var(--radius-md)", background: "var(--pink-100)", flexShrink: 0 }}
-              aria-hidden
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pink-700)" strokeWidth="2" strokeLinecap="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                <circle cx="12" cy="13" r="4" />
-              </svg>
-            </div>
+            <JournalThumb path={f.storage_path} />
             <div className="flex-1">
               <p style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text-strong)" }}>{f.meal_label}</p>
               <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
@@ -155,5 +147,37 @@ export function FoodJournal({ initial }: { initial: FoodLogRow[] }) {
         </button>
       )}
     </section>
+  );
+}
+
+/* Photo thumbnail for a journal entry (signed URL, private bucket). */
+function JournalThumb({ path }: { path: string | null }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!path) return;
+    let alive = true;
+    supabaseBrowser()
+      .storage.from("food-photos")
+      .createSignedUrl(path, 3600)
+      .then(({ data }) => alive && data?.signedUrl && setUrl(data.signedUrl));
+    return () => {
+      alive = false;
+    };
+  }, [path]);
+  if (path && url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={url} alt="Meal photo" style={{ width: 48, height: 48, objectFit: "cover", borderRadius: "var(--radius-md)", flexShrink: 0 }} />;
+  }
+  return (
+    <div
+      className="flex items-center justify-center"
+      style={{ width: 48, height: 48, borderRadius: "var(--radius-md)", background: "var(--pink-100)", flexShrink: 0 }}
+      aria-hidden
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pink-700)" strokeWidth="2" strokeLinecap="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+        <circle cx="12" cy="13" r="4" />
+      </svg>
+    </div>
   );
 }

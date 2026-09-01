@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { redirect } from "next/navigation";
-import { getClientHome, getSessionUser, getSignedUrls } from "@/lib/data";
+import { getClientHome, getDailyWeights, getSessionUser, getSignedUrls } from "@/lib/data";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -9,12 +9,16 @@ export default async function ProgressPage() {
   const session = await getSessionUser();
   if (!session) redirect("/login");
   const { checkins } = await getClientHome(session.user.id);
+  const daily = (session.profile?.daily_weight_enabled ? await getDailyWeights(session.user.id) : []).map((d) => ({
+    date: d.weigh_date as string,
+    lbs: Number(d.weight_lbs),
+  }));
 
   const points = [...checkins].reverse(); // oldest -> newest
   const goal = session.profile?.goal_weight_lbs != null ? Number(session.profile.goal_weight_lbs) : null;
   const start = session.profile?.start_weight_lbs != null ? Number(session.profile.start_weight_lbs) : null;
 
-  if (points.length === 0) {
+  if (points.length === 0 && daily.length === 0) {
     return (
       <main className="page-pad">
         <p className="eyebrow eyebrow--accent">Progress</p>
@@ -32,17 +36,25 @@ export default async function ProgressPage() {
   }
 
   const weights = points.map((c) => Number(c.dry_weight_lbs));
-  const allVals = [...weights, ...(goal != null ? [goal] : []), ...(start != null ? [start] : [])];
+  const checkinPts = points.map((c) => ({ t: new Date(c.submitted_at).getTime(), lbs: Number(c.dry_weight_lbs), id: c.id as string, week: c.iso_week as string }));
+  const dailyPts = daily.map((d) => ({ t: new Date(d.date + "T12:00:00").getTime(), lbs: d.lbs }));
+  const allPts = [...checkinPts, ...dailyPts];
+  const allVals = [...allPts.map((p2) => p2.lbs), ...(goal != null ? [goal] : []), ...(start != null ? [start] : [])];
   const min = Math.min(...allVals) - 2;
   const max = Math.max(...allVals) + 2;
+  const tMin = Math.min(...allPts.map((p2) => p2.t));
+  const tMax = Math.max(...allPts.map((p2) => p2.t));
   const W = 320;
   const H = 140;
-  const x = (i: number) => (points.length > 1 ? (i / (points.length - 1)) * (W - 24) + 12 : W / 2);
+  const x = (t: number) => (tMax > tMin ? ((t - tMin) / (tMax - tMin)) * (W - 24) + 12 : W / 2);
   const y = (w: number) => H - 16 - ((w - min) / (max - min)) * (H - 32);
-  const path = points.map((c, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(Number(c.dry_weight_lbs))}`).join(" ");
+  const dailySorted = [...dailyPts].sort((a, b) => a.t - b.t);
+  const dailyPath = dailySorted.map((d, i) => `${i === 0 ? "M" : "L"}${x(d.t)},${y(d.lbs)}`).join(" ");
+  const checkinSorted = [...checkinPts].sort((a, b) => a.t - b.t);
+  const path = checkinSorted.map((c, i) => `${i === 0 ? "M" : "L"}${x(c.t)},${y(c.lbs)}`).join(" ");
 
-  const avgMeal = (points.reduce((a, c) => a + c.meal_rating, 0) / points.length).toFixed(1);
-  const avgFit = (points.reduce((a, c) => a + c.fitness_rating, 0) / points.length).toFixed(1);
+  const avgMeal = points.length ? (points.reduce((a, c) => a + c.meal_rating, 0) / points.length).toFixed(1) : "—";
+  const avgFit = points.length ? (points.reduce((a, c) => a + c.fitness_rating, 0) / points.length).toFixed(1) : "—";
 
   return (
     <main className="page-pad">
@@ -55,14 +67,14 @@ export default async function ProgressPage() {
         <div className="flex items-baseline justify-between">
           <h2 className="eyebrow">Dry weight</h2>
           <span className="metric" style={{ fontSize: "var(--text-sm)", color: "var(--pink-700)" }}>
-            {weights[weights.length - 1]} lbs
+            {[...allPts].sort((a, b) => b.t - a.t)[0].lbs} lbs
           </span>
         </div>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="mt-3 w-full"
           role="img"
-          aria-label={`Weight trend across ${points.length} check-ins, from ${weights[0]} to ${weights[weights.length - 1]} pounds.${goal != null ? ` Goal is ${goal} pounds.` : ""}`}
+          aria-label={`Weight trend: ${dailySorted.length} daily weigh-ins and ${points.length} check-ins.${goal != null ? ` Goal is ${goal} pounds.` : ""}`}
         >
           {goal != null && (
             <>
@@ -72,17 +84,23 @@ export default async function ProgressPage() {
               </text>
             </>
           )}
-          <path d={path} fill="none" stroke="var(--pink-500)" strokeWidth="2.5" strokeLinecap="round" />
-          {points.map((c, i) => (
-            <circle key={c.id} cx={x(i)} cy={y(Number(c.dry_weight_lbs))} r="4" fill="var(--pink-500)" stroke="var(--white)" strokeWidth="1.5" />
+          {dailySorted.length > 1 && (
+            <path d={dailyPath} fill="none" stroke="var(--pink-300)" strokeWidth="1.5" strokeLinecap="round" />
+          )}
+          {dailySorted.map((d) => (
+            <circle key={d.t} cx={x(d.t)} cy={y(d.lbs)} r="2" fill="var(--pink-300)" />
+          ))}
+          {checkinSorted.length > 1 && <path d={path} fill="none" stroke="var(--pink-500)" strokeWidth="2.5" strokeLinecap="round" />}
+          {checkinSorted.map((c) => (
+            <circle key={c.id} cx={x(c.t)} cy={y(c.lbs)} r="4.5" fill="var(--pink-500)" stroke="var(--white)" strokeWidth="1.5" />
           ))}
         </svg>
         <div className="flex justify-between" style={{ fontSize: "var(--text-2xs)", color: "var(--text-muted)" }}>
-          {points.map((c) => (
-            <span key={c.id} className="metric">
-              {c.iso_week.slice(5)}
-            </span>
-          ))}
+          <span className="metric">{new Date(tMin).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+          {dailySorted.length > 0 && (
+            <span style={{ color: "var(--pink-400, #FF6FA5)" }}>· daily weigh-ins · dots = check-ins ·</span>
+          )}
+          <span className="metric">{new Date(tMax).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
         </div>
       </section>
 
@@ -104,11 +122,13 @@ export default async function ProgressPage() {
         ))}
       </section>
 
-      <PhotoCompare
-        firstId={points[0].id}
-        latestId={points[points.length - 1].id}
-        labels={[points[0], points[points.length - 1]].map((c) => ({ week: c.iso_week, weight: Number(c.dry_weight_lbs) }))}
-      />
+      {points.length > 0 && (
+        <PhotoCompare
+          firstId={points[0].id}
+          latestId={points[points.length - 1].id}
+          labels={[points[0], points[points.length - 1]].map((c) => ({ week: c.iso_week, weight: Number(c.dry_weight_lbs) }))}
+        />
+      )}
     </main>
   );
 }

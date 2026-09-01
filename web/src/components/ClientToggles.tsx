@@ -9,6 +9,7 @@ interface ToggleProfile {
   show_macros: boolean;
   show_calories: boolean;
   food_journal_enabled: boolean;
+  daily_weight_enabled: boolean;
   status: string;
 }
 
@@ -16,6 +17,7 @@ const toggleDefs = [
   { key: "show_macros", label: "Show macros" },
   { key: "show_calories", label: "Show calories" },
   { key: "food_journal_enabled", label: "Food journal" },
+  { key: "daily_weight_enabled", label: "Daily weigh-ins" },
 ] as const;
 
 export function ClientToggles({ client }: { client: ToggleProfile }) {
@@ -23,6 +25,7 @@ export function ClientToggles({ client }: { client: ToggleProfile }) {
     show_macros: client.show_macros,
     show_calories: client.show_calories,
     food_journal_enabled: client.food_journal_enabled,
+    daily_weight_enabled: client.daily_weight_enabled,
   });
   const [error, setError] = useState<string | null>(null);
 

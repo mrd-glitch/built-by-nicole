@@ -3,7 +3,8 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Ring } from "@/components/Ring";
 import { ConsistencyCalendar } from "@/components/ConsistencyCalendar";
-import { getClientHome, getSessionUser } from "@/lib/data";
+import { getClientHome, getDailyWeights, getSessionUser } from "@/lib/data";
+import { DailyWeightEntry } from "@/components/DailyWeightEntry";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,10 @@ export default async function ClientHome() {
   const session = await getSessionUser();
   if (!session) redirect("/login");
   const { checkins, assignment, sessions } = await getClientHome(session.user.id);
+  const weighEnabled = session.profile?.daily_weight_enabled ?? false;
+  const dailyWeights = weighEnabled ? await getDailyWeights(session.user.id, 2) : [];
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayWeight = dailyWeights.find((w) => w.weigh_date === todayStr)?.weight_lbs ?? null;
 
   const latest = checkins[0];
   const start = session.profile?.start_weight_lbs != null ? Number(session.profile.start_weight_lbs) : null;
@@ -54,6 +59,8 @@ export default async function ClientHome() {
           </p>
         </div>
       </section>
+
+      {weighEnabled && <DailyWeightEntry todayValue={todayWeight != null ? Number(todayWeight) : null} />}
 
       {/* Stat tiles */}
       <section className="mt-4 grid grid-cols-2 gap-3">

@@ -284,7 +284,21 @@ export async function createMealPlan(name: string) {
   return { ok: true, versionId: version.id as string };
 }
 
-export async function updateMealPlanVersion(versionId: string, fields: { intro?: string | null }) {
+export async function updateMealPlanVersion(
+  versionId: string,
+  fields: {
+    intro?: string | null;
+    headline?: string | null;
+    metric_value?: string | null;
+    metric_label?: string | null;
+    metric_note?: string | null;
+    mission_title?: string | null;
+    mission_body?: string | null;
+    callout_title?: string | null;
+    callout_body?: string | null;
+    closing_note?: string | null;
+  },
+) {
   const supabase = await admin();
   const { error } = await supabase.from("meal_plan_versions").update(fields).eq("id", versionId);
   if (error) return { error: error.message };
@@ -302,7 +316,7 @@ export async function addMeal(versionId: string, name: string, position: number)
   return { ok: true, mealId: data.id as string };
 }
 
-export async function updateMeal(mealId: string, fields: { name?: string; note?: string | null }) {
+export async function updateMeal(mealId: string, fields: { name?: string; note?: string | null; chip_text?: string | null }) {
   const supabase = await admin();
   const { error } = await supabase.from("meals").update(fields).eq("id", mealId);
   if (error) return { error: error.message };
@@ -375,7 +389,7 @@ export async function assignMealPlanCopy(versionId: string, clientId: string, cl
   const supabase = await admin();
   const { data: src, error: sErr } = await supabase
     .from("meal_plan_versions")
-    .select("id, meal_plan_id, intro, pdf_path, pdf_name, meal_plans(name, description, target_calories, target_mode, target_protein_g, target_carbs_g, target_fat_g, target_protein_pct, target_carbs_pct, target_fat_pct), meals(id, name, note, position, meal_items(name, portion, protein, carbs, fats, calories, position))")
+    .select("id, meal_plan_id, intro, pdf_path, pdf_name, headline, metric_value, metric_label, metric_note, mission_title, mission_body, callout_title, callout_body, closing_note, meal_plans(name, description, target_calories, target_mode, target_protein_g, target_carbs_g, target_fat_g, target_protein_pct, target_carbs_pct, target_fat_pct), meals(id, name, note, chip_text, position, meal_items(name, portion, protein, carbs, fats, calories, position), meal_options(position, text, tag, calories, protein, carbs, fats))")
     .eq("id", versionId)
     .single();
   if (sErr || !src) return { error: sErr?.message ?? "Meal plan not found" };
@@ -391,7 +405,23 @@ export async function assignMealPlanCopy(versionId: string, clientId: string, cl
   if (pErr) return { error: pErr.message };
   const { data: ver, error: vErr } = await supabase
     .from("meal_plan_versions")
-    .insert({ meal_plan_id: plan.id, version: 1, intro: src.intro, pdf_path: src.pdf_path, pdf_name: src.pdf_name, published_at: new Date().toISOString() })
+    .insert({
+      meal_plan_id: plan.id,
+      version: 1,
+      intro: src.intro,
+      pdf_path: src.pdf_path,
+      pdf_name: src.pdf_name,
+      headline: src.headline,
+      metric_value: src.metric_value,
+      metric_label: src.metric_label,
+      metric_note: src.metric_note,
+      mission_title: src.mission_title,
+      mission_body: src.mission_body,
+      callout_title: src.callout_title,
+      callout_body: src.callout_body,
+      closing_note: src.closing_note,
+      published_at: new Date().toISOString(),
+    })
     .select("id")
     .single();
   if (vErr) return { error: vErr.message };
@@ -399,7 +429,7 @@ export async function assignMealPlanCopy(versionId: string, clientId: string, cl
   for (const m of src.meals ?? []) {
     const { data: nm, error: mErr } = await supabase
       .from("meals")
-      .insert({ version_id: ver.id, name: m.name, note: m.note, position: m.position })
+      .insert({ version_id: ver.id, name: m.name, note: m.note, chip_text: m.chip_text, position: m.position })
       .select("id")
       .single();
     if (mErr) return { error: mErr.message };
@@ -407,6 +437,11 @@ export async function assignMealPlanCopy(versionId: string, clientId: string, cl
     if (rows.length) {
       const { error: iErr } = await supabase.from("meal_items").insert(rows);
       if (iErr) return { error: iErr.message };
+    }
+    const oRows = (m.meal_options ?? []).map((o) => ({ ...o, meal_id: nm.id }));
+    if (oRows.length) {
+      const { error: oErr } = await supabase.from("meal_options").insert(oRows);
+      if (oErr) return { error: oErr.message };
     }
   }
 
@@ -417,4 +452,34 @@ export async function assignMealPlanCopy(versionId: string, clientId: string, cl
   revalidatePath("/admin/meal-plans");
   revalidatePath(`/admin/clients/${clientId}`);
   return { ok: true, versionId: ver.id as string };
+}
+
+/* ---------- meal options (pick-one rows) ---------- */
+
+export async function addMealOption(mealId: string, position: number) {
+  const supabase = await admin();
+  const { data, error } = await supabase
+    .from("meal_options")
+    .insert({ meal_id: mealId, position, text: "" })
+    .select("id")
+    .single();
+  if (error) return { error: error.message };
+  return { ok: true, id: data.id as string };
+}
+
+export async function updateMealOption(
+  id: string,
+  fields: { text?: string; tag?: "zero_prep" | "rough_day" | null; calories?: number | null; protein?: number | null; carbs?: number | null; fats?: number | null },
+) {
+  const supabase = await admin();
+  const { error } = await supabase.from("meal_options").update(fields).eq("id", id);
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
+export async function removeMealOption(id: string) {
+  const supabase = await admin();
+  const { error } = await supabase.from("meal_options").delete().eq("id", id);
+  if (error) return { error: error.message };
+  return { ok: true };
 }

@@ -125,7 +125,7 @@ export async function declineApplication(applicationId: string) {
 
 /* ---------- admin: client toggles ---------- */
 
-export async function updateToggles(clientId: string, toggles: { show_macros?: boolean; show_calories?: boolean; food_journal_enabled?: boolean; status?: string }) {
+export async function updateToggles(clientId: string, toggles: { show_macros?: boolean; show_calories?: boolean; food_journal_enabled?: boolean; daily_weight_enabled?: boolean; status?: string }) {
   const { supabase } = await requireAdmin();
   const { error } = await supabase.from("profiles").update(toggles).eq("id", clientId);
   if (error) return { error: error.message };
@@ -326,8 +326,9 @@ export async function logFood(
 
 export async function checkoffMeal(
   mealId: string,
-  status: "ate_as_written" | "custom",
+  status: "ate_as_written" | "custom" | "option",
   customItems?: { meal_item_id?: string | null; name: string; calories: number; protein: number; carbs: number; fats: number }[],
+  optionId?: string,
 ) {
   const supabase = await supabaseServer();
   const {
@@ -339,7 +340,7 @@ export async function checkoffMeal(
   await supabase.from("meal_checkoffs").delete().eq("client_id", user.id).eq("log_date", today).eq("meal_id", mealId);
   const { data, error } = await supabase
     .from("meal_checkoffs")
-    .insert({ client_id: user.id, log_date: today, meal_id: mealId, status })
+    .insert({ client_id: user.id, log_date: today, meal_id: mealId, status, option_id: optionId ?? null })
     .select("id")
     .single();
   if (error) return { error: error.message };
@@ -398,5 +399,22 @@ export async function sendMediaMessage(
   });
   if (error) return { error: error.message };
   revalidatePath(isSelf ? "/app/messages" : `/admin/clients/${clientId}`);
+  return { ok: true };
+}
+
+/* ---------- daily weigh-in ---------- */
+
+export async function saveDailyWeight(weightLbs: number) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in" };
+  if (!(weightLbs > 40 && weightLbs < 1000)) return { error: "That doesn't look like a weight." };
+  const { error } = await supabase
+    .from("daily_weights")
+    .upsert({ client_id: user.id, weigh_date: new Date().toISOString().slice(0, 10), weight_lbs: weightLbs }, { onConflict: "client_id,weigh_date" });
+  if (error) return { error: error.message };
+  revalidatePath("/app");
   return { ok: true };
 }

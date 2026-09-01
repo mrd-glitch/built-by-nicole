@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { getClientDetail, getSignedUrls } from "@/lib/data";
+import { getClientDetail, getDailyWeights, getSignedUrls } from "@/lib/data";
 import { AssignPlans } from "@/components/AssignPlans";
 import { ClientToggles } from "@/components/ClientToggles";
 import { ReplyBox } from "@/components/ReplyBox";
@@ -144,6 +144,7 @@ export default async function ClientDetail({
                 / goal {profile.goal_weight_lbs ?? "—"}
               </span>
             </p>
+            <AdminWeightGraph clientId={profile.id} />
           </section>
           <AssignPlans
             clientId={profile.id}
@@ -190,6 +191,34 @@ async function CheckinPhotos({ photos }: { photos: { pose: string; storage_path:
           </div>
         ),
       )}
+    </div>
+  );
+}
+
+async function AdminWeightGraph({ clientId }: { clientId: string }) {
+  const daily = await getDailyWeights(clientId);
+  if (daily.length < 2) return null;
+  const pts = daily.map((d) => ({ t: new Date(d.weigh_date + "T12:00:00").getTime(), lbs: Number(d.weight_lbs) }));
+  const min = Math.min(...pts.map((p) => p.lbs)) - 1;
+  const max = Math.max(...pts.map((p) => p.lbs)) + 1;
+  const tMin = pts[0].t;
+  const tMax = pts[pts.length - 1].t;
+  const W = 280;
+  const H = 80;
+  const x = (t: number) => (tMax > tMin ? ((t - tMin) / (tMax - tMin)) * (W - 16) + 8 : W / 2);
+  const y = (w: number) => H - 10 - ((w - min) / (max - min)) * (H - 20);
+  const path = pts.map((p, i) => `${i === 0 ? "M" : "L"}${x(p.t)},${y(p.lbs)}`).join(" ");
+  return (
+    <div className="mt-3">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`${daily.length} daily weigh-ins`}>
+        <path d={path} fill="none" stroke="var(--pink-500)" strokeWidth="2" strokeLinecap="round" />
+        {pts.map((p) => (
+          <circle key={p.t} cx={x(p.t)} cy={y(p.lbs)} r="2.2" fill="var(--pink-500)" />
+        ))}
+      </svg>
+      <p style={{ fontSize: "var(--text-2xs)", color: "var(--text-muted)" }}>
+        Daily weigh-ins · last {daily.length} days · latest <span className="metric">{pts[pts.length - 1].lbs} lbs</span>
+      </p>
     </div>
   );
 }
