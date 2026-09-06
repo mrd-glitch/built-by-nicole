@@ -18,7 +18,10 @@ export default async function ProgramsPage() {
         <NewProgramButton />
       </div>
       <p className="mt-2" style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
-        Build it once, assign it, watch the numbers come back.
+        Build it once, assign it, watch the numbers come back.{" "}
+        <Link href="/admin/exercises" style={{ color: "var(--text-accent)" }}>
+          Exercise library →
+        </Link>
       </p>
 
       <div className="mt-6 grid gap-3">

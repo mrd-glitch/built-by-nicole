@@ -4,17 +4,16 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  addBlock,
-  addExerciseToBlock,
+  addExerciseToDay,
   assignProgramCopy,
   copyDayBlocks,
   createExerciseQuick,
-  deleteBlock,
+  moveExerciseToBlock,
   publishAndAssign,
-  removeBlockExercise,
+  removeExercise,
   renameDay,
   setWeekOverride,
-  updateBlock,
+  splitExerciseOut,
   updateBlockExercise,
   updateProgramMeta,
 } from "@/lib/actions-builder";
@@ -24,6 +23,7 @@ interface ExerciseRow {
   name: string;
   youtube_url: string | null;
   cue: string | null;
+  thumb_path?: string | null;
 }
 interface Override {
   week: number;
@@ -68,6 +68,11 @@ interface Version {
   program_assignments: { active: boolean; profiles: { id: string; full_name: string } | null }[];
 }
 
+type Step = "days" | "weeks" | "assign";
+
+/* Builder v3 — three guided steps: build each day once, tune weeks, send it.
+   "Blocks" are invisible plumbing: every exercise gets its own; "Superset
+   with above" merges two. */
 export function ProgramBuilder({
   version,
   exercises: initialExercises,
@@ -83,17 +88,18 @@ export function ProgramBuilder({
   );
   const [activeDayId, setActiveDayId] = useState(days[0]?.id);
   const [exercises, setExercises] = useState(initialExercises);
-  const [picker, setPicker] = useState<{ blockId: string } | null>(null);
-  const [publishOpen, setPublishOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const [view, setView] = useState<"days" | "weeks">("days");
+  const [step, setStep] = useState<Step>("days");
   const [weeks, setWeeks] = useState(version.programs.weeks);
-  const [directionsOpen, setDirectionsOpen] = useState<Record<string, boolean>>({});
+  const [menuFor, setMenuFor] = useState<string | null>(null);
 
   const day = useMemo(() => days.find((d) => d.id === activeDayId) ?? days[0], [days, activeDayId]);
   const assigned = version.program_assignments?.filter((a) => a.active).map((a) => a.profiles?.full_name).filter(Boolean) ?? [];
+  const thumbFor = (exerciseId: string) => exercises.find((e) => e.id === exerciseId)?.thumb_path ?? null;
+  const totalExercises = days.reduce((a, d) => a + d.day_blocks.reduce((x, b) => x + b.block_exercises.length, 0), 0);
 
   function patchDay(dayId: string, fn: (d: Day) => Day) {
     setDays((prev) => prev.map((d) => (d.id === dayId ? fn(d) : d)));
@@ -103,78 +109,150 @@ export function ProgramBuilder({
     setTimeout(() => setSaved(false), 1200);
   }
 
-  /* ----- block ops ----- */
+  /* ----- exercise ops (block plumbing hidden) ----- */
 
-  async function onAddBlock() {
-    if (!day) return;
-    const pos = day.day_blocks.length + 1;
-    const res = await addBlock(day.id, pos);
-    if ("error" in res && res.error) return setError(res.error);
-    if ("blockId" in res && res.blockId) {
-      patchDay(day.id, (d) => ({
-        ...d,
-        day_blocks: [...d.day_blocks, { id: res.blockId!, label: `${pos})`, rest_note: null, position: pos, block_exercises: [] }],
-      }));
-      setPicker({ blockId: res.blockId! });
-    }
-  }
-
-  async function onDeleteBlock(blockId: string) {
-    patchDay(day.id, (d) => ({ ...d, day_blocks: d.day_blocks.filter((b) => b.id !== blockId) }));
-    await deleteBlock(blockId);
+  async function onPickExercise(ex: { id: string; name: string }): Promise<true | string> {
+    if (!day) return "No day selected";
+    const res = await addExerciseToDay(day.id, ex);
+    if ("error" in res && res.error) return res.error;
+    if (!("id" in res) || !res.id) return "Couldn't add that exercise";
+    const pos = res.position;
+    patchDay(day.id, (d) => ({
+      ...d,
+      day_blocks: [
+        ...d.day_blocks,
+        {
+          id: res.blockId,
+          label: `${pos})`,
+          rest_note: null,
+          position: pos,
+          block_exercises: [
+            {
+              id: res.id,
+              exercise_id: ex.id,
+              exercise_name: ex.name,
+              sets: res.sets,
+              rep_range: res.rep_range,
+              target_weight_lbs: res.target_weight_lbs,
+              optional: false,
+              optional_note: null,
+              directions: null,
+              position: 1,
+              program_week_overrides: [],
+            },
+          ],
+        },
+      ],
+    }));
+    setError(null);
     flashSaved();
+    return true;
   }
 
-  async function onPickExercise(blockId: string, ex: { id: string; name: string }) {
-    const block = day.day_blocks.find((b) => b.id === blockId);
-    const pos = (block?.block_exercises.length ?? 0) + 1;
-    const res = await addExerciseToBlock(blockId, ex, pos);
-    if ("error" in res && res.error) return setError(res.error);
-    if ("id" in res && res.id) {
-      patchDay(day.id, (d) => ({
-        ...d,
-        day_blocks: d.day_blocks.map((b) =>
-          b.id === blockId
-            ? {
-                ...b,
-                block_exercises: [
-                  ...b.block_exercises,
-                  { id: res.id!, exercise_id: ex.id, exercise_name: ex.name, sets: 3, rep_range: "8-10", target_weight_lbs: null, optional: false, optional_note: null, directions: null, position: pos, program_week_overrides: [] },
-                ],
-              }
-            : b,
-        ),
-      }));
-      flashSaved();
-    }
-    setPicker(null);
+  /* Any optimistic edit that the server rejects: show the error and reload
+     from the database so the screen never lies about what's saved. */
+  function revert(message: string) {
+    setError(`${message} — reloading the saved version.`);
+    setTimeout(() => window.location.reload(), 900);
   }
 
   async function onFieldChange(blockId: string, beId: string, fields: Partial<BlockExercise>) {
     patchDay(day.id, (d) => ({
       ...d,
       day_blocks: d.day_blocks.map((b) =>
-        b.id === blockId
-          ? { ...b, block_exercises: b.block_exercises.map((e) => (e.id === beId ? { ...e, ...fields } : e)) }
-          : b,
+        b.id === blockId ? { ...b, block_exercises: b.block_exercises.map((e) => (e.id === beId ? { ...e, ...fields } : e)) } : b,
       ),
     }));
-    await updateBlockExercise(beId, fields as never);
-    flashSaved();
+    try {
+      const res = await updateBlockExercise(beId, fields as never);
+      if (res && "error" in res && res.error) return revert(res.error);
+      flashSaved();
+    } catch (err) {
+      revert(err instanceof Error ? err.message : "Lost connection");
+    }
   }
 
   async function onRemoveExercise(blockId: string, beId: string) {
-    patchDay(day.id, (d) => ({
-      ...d,
-      day_blocks: d.day_blocks.map((b) =>
-        b.id === blockId ? { ...b, block_exercises: b.block_exercises.filter((e) => e.id !== beId) } : b,
-      ),
-    }));
-    await removeBlockExercise(beId);
-    flashSaved();
+    if (busy) return;
+    setBusy(true);
+    setMenuFor(null);
+    try {
+      // Transactional: removes the exercise and its block if that empties it.
+      const res = await removeExercise(beId);
+      if (res && "error" in res && res.error) return revert(res.error);
+      patchDay(day.id, (d) => ({
+        ...d,
+        day_blocks: d.day_blocks
+          .map((b) => (b.id === blockId ? { ...b, block_exercises: b.block_exercises.filter((e) => e.id !== beId) } : b))
+          .filter((b) => b.block_exercises.length > 0),
+      }));
+      flashSaved();
+    } catch (err) {
+      revert(err instanceof Error ? err.message : "Lost connection");
+    } finally {
+      setBusy(false);
+    }
   }
 
-  async function onCopyToAllDays() {
+  /* Superset with the block above: move this exercise into the previous block. */
+  async function onSupersetWithAbove(blockId: string, be: BlockExercise) {
+    if (busy) return;
+    const sorted = [...day.day_blocks].sort((a, b) => a.position - b.position);
+    const i = sorted.findIndex((b) => b.id === blockId);
+    if (i <= 0) return;
+    const prev = sorted[i - 1];
+    const cur = sorted[i];
+    setMenuFor(null);
+    setBusy(true);
+    try {
+      const res = await moveExerciseToBlock(be.id, prev.id);
+      if ("error" in res && res.error) return revert(res.error);
+      const pos: number = "position" in res && typeof res.position === "number" ? res.position : prev.block_exercises.length + 1;
+      patchDay(day.id, (d) => ({
+        ...d,
+        day_blocks: d.day_blocks
+          .map((b) => {
+            if (b.id === prev.id) return { ...b, block_exercises: [...b.block_exercises, { ...be, position: pos }] };
+            if (b.id === cur.id) return { ...b, block_exercises: b.block_exercises.filter((e) => e.id !== be.id) };
+            return b;
+          })
+          .filter((b) => b.block_exercises.length > 0),
+      }));
+      flashSaved();
+    } catch (err) {
+      revert(err instanceof Error ? err.message : "Lost connection");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onSplitOut(blockId: string, be: BlockExercise) {
+    if (busy) return;
+    setBusy(true);
+    setMenuFor(null);
+    try {
+      const res = await splitExerciseOut(be.id);
+      if ("error" in res && res.error) return revert(res.error);
+      if (!("blockId" in res) || !res.blockId) return;
+      const newBlockId: string = res.blockId;
+      const pos: number = res.position;
+      if (newBlockId === blockId) return; // already alone
+      patchDay(day.id, (d) => ({
+        ...d,
+        day_blocks: [
+          ...d.day_blocks.map((b) => (b.id === blockId ? { ...b, block_exercises: b.block_exercises.filter((e) => e.id !== be.id) } : b)),
+          { id: newBlockId, label: `${pos})`, rest_note: null, position: pos, block_exercises: [{ ...be, position: 1 }] },
+        ],
+      }));
+      flashSaved();
+    } catch (err) {
+      revert(err instanceof Error ? err.message : "Lost connection");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onCopyToEmptyDays() {
     if (!day || busy) return;
     setBusy(true);
     for (const target of days) {
@@ -182,25 +260,27 @@ export function ProgramBuilder({
       await copyDayBlocks(day.id, target.id);
     }
     setBusy(false);
-    router.refresh();
     window.location.reload();
   }
 
-  async function onPublish(client: { id: string; full_name: string } | null) {
+  async function onAssign(client: { id: string; full_name: string } | null) {
     setBusy(true);
-    const res = client
-      ? await assignProgramCopy(version.id, client.id, client.full_name)
-      : await publishAndAssign(version.id, null);
+    const res = client ? await assignProgramCopy(version.id, client.id, client.full_name) : await publishAndAssign(version.id, null);
     setBusy(false);
     if (res && "error" in res && res.error) return setError(res.error);
-    setPublishOpen(false);
-    router.push("/admin/programs");
+    router.push(client ? `/admin/clients/${client.id}` : "/admin/programs");
   }
 
   if (!day) return null;
 
+  const steps: { key: Step; label: string }[] = [
+    { key: "days", label: "1 · Build days" },
+    { key: "weeks", label: "2 · Weeks" },
+    { key: "assign", label: "3 · Send" },
+  ];
+
   return (
-    <main style={{ maxWidth: 720 }}>
+    <main style={{ maxWidth: 720, paddingBottom: 90 }}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <Link href="/admin/programs" style={{ fontSize: "var(--text-sm)" }}>
@@ -211,207 +291,240 @@ export function ProgramBuilder({
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          {saved && <span className="badge badge--green">Saved</span>}
-          <span className={`badge ${version.published_at ? "badge--green" : "badge--yellow"}`}>
-            {version.published_at ? (assigned.length ? `Live · ${assigned.join(", ")}` : "Published") : "Draft"}
-          </span>
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => setPublishOpen(true)}>
-            {version.published_at ? "Assign" : "Publish"}
-          </button>
+          {saved && <span className="chip chip--pink">Saved</span>}
+          {assigned.length > 0 && <span className="chip chip--ink">Live · {assigned.join(", ")}</span>}
         </div>
       </div>
 
-      {/* Plan description + weeks */}
-      <div className="mt-4 grid gap-2">
-        <textarea
-          className="input"
-          rows={2}
-          placeholder="Plan description — what this plan is for, how to approach it..."
-          defaultValue={version.programs.description ?? ""}
-          onBlur={(e) => {
-            updateProgramMeta(version.programs.id, { description: e.target.value || null });
-            flashSaved();
-          }}
-        />
-        <div className="flex items-center justify-between gap-3">
-          <label className="flex items-center gap-2" style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
-            Weeks
-            <input
-              className="input metric"
-              style={{ width: 64, minHeight: 38 }}
-              inputMode="numeric"
-              defaultValue={weeks}
-              onBlur={(e) => {
-                const w = Math.max(1, Math.min(16, parseInt(e.target.value, 10) || 4));
-                setWeeks(w);
-                updateProgramMeta(version.programs.id, { weeks: w });
-                flashSaved();
-              }}
-            />
-          </label>
-          <div className="seg" role="tablist">
-            <button type="button" className="seg__opt" aria-pressed={view === "days"} onClick={() => setView("days")}>
-              Build days
-            </button>
-            <button type="button" className="seg__opt" aria-pressed={view === "weeks"} onClick={() => setView("weeks")}>
-              Week progression
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {view === "weeks" ? (
-        <ProgressionGrid days={days} weeks={weeks} onSaved={flashSaved} setDays={setDays} />
-      ) : (
-        <>
-      {/* Day strip */}
-      <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
-        {days.map((d) => (
-          <button key={d.id} type="button" className="day-chip" aria-pressed={d.id === day.id} onClick={() => setActiveDayId(d.id)}>
-            <small>Day {d.day}</small>
-            <span className="metric">{d.day_blocks.reduce((a, b) => a + b.block_exercises.length, 0)}</span>
-            <small>{d.day_blocks.length ? "exercises" : "empty"}</small>
+      {/* Stepper */}
+      <div className="seg mt-4 w-full" role="tablist" style={{ display: "flex" }}>
+        {steps.map((s) => (
+          <button key={s.key} type="button" className="seg__opt" style={{ flex: 1 }} aria-pressed={step === s.key} onClick={() => setStep(s.key)}>
+            {s.label}
           </button>
         ))}
       </div>
 
-      {/* Day title */}
-      <div className="mt-4 flex items-center gap-2">
-        <input
-          className="input"
-          style={{ fontFamily: "var(--font-display)", fontWeight: 700, maxWidth: 280 }}
-          defaultValue={day.title}
-          aria-label="Day title"
-          onBlur={(e) => {
-            if (e.target.value !== day.title) {
-              patchDay(day.id, (d) => ({ ...d, title: e.target.value }));
-              renameDay(day.id, e.target.value);
+      {step === "days" && (
+        <>
+          <textarea
+            className="input mt-4"
+            rows={2}
+            placeholder="What this plan is for — the client sees this at the top of their program."
+            defaultValue={version.programs.description ?? ""}
+            onBlur={(e) => {
+              updateProgramMeta(version.programs.id, { description: e.target.value || null });
               flashSaved();
-            }
-          }}
-        />
-        {day.day_blocks.length > 0 && days.some((d) => d.id !== day.id && d.day_blocks.length === 0) && (
-          <button type="button" className="btn btn--quiet btn--sm" onClick={onCopyToAllDays} disabled={busy}>
-            {busy ? "Copying..." : "Copy to empty days"}
-          </button>
-        )}
-      </div>
+            }}
+          />
 
-      {/* Blocks */}
-      <div className="mt-4 grid gap-3">
-        {[...day.day_blocks]
-          .sort((a, b) => a.position - b.position)
-          .map((block) => (
-            <section key={block.id} className="card" style={{ padding: "var(--space-4)" }}>
-              <div className="flex items-center justify-between gap-2">
-                <input
-                  className="eyebrow"
-                  style={{ border: "none", background: "transparent", color: "var(--text-strong)", width: 160 }}
-                  defaultValue={block.label}
-                  aria-label="Block label"
-                  onBlur={(e) => {
-                    updateBlock(block.id, { label: e.target.value });
-                    flashSaved();
-                  }}
-                />
-                <div className="flex items-center gap-2">
-                  {block.block_exercises.length > 1 && <span className="badge badge--pink">Superset</span>}
-                  <button type="button" className="btn btn--quiet btn--sm" onClick={() => onDeleteBlock(block.id)} aria-label="Delete block">
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              {[...block.block_exercises]
-                .sort((a, b) => a.position - b.position)
-                .map((be) => (
-                  <div key={be.id} className="mt-3" style={{ borderTop: "var(--rule-hairline)", paddingTop: "var(--space-3)" }}>
-                    <div className="flex items-center justify-between gap-2">
-                      <p style={{ fontWeight: 600, color: "var(--text-strong)", fontSize: "var(--text-base)" }}>{be.exercise_name}</p>
-                      <button type="button" className="btn btn--quiet btn--sm" onClick={() => onRemoveExercise(block.id, be.id)} aria-label={`Remove ${be.exercise_name}`}>
-                        ✕
-                      </button>
-                    </div>
-                    <div className="mt-2 grid grid-cols-3 gap-2">
-                      <div>
-                        <span className="field-label" style={{ fontSize: 9 }}>
-                          Sets
-                        </span>
-                        <input
-                          className="input metric"
-                          inputMode="numeric"
-                          defaultValue={be.sets}
-                          onBlur={(e) => onFieldChange(block.id, be.id, { sets: parseInt(e.target.value, 10) || 1 })}
-                        />
-                      </div>
-                      <div>
-                        <span className="field-label" style={{ fontSize: 9 }}>
-                          Reps
-                        </span>
-                        <input
-                          className="input metric"
-                          defaultValue={be.rep_range}
-                          placeholder="8-10"
-                          onBlur={(e) => onFieldChange(block.id, be.id, { rep_range: e.target.value || "8-10" })}
-                        />
-                      </div>
-                      <div>
-                        <span className="field-label" style={{ fontSize: 9 }}>
-                          Target lbs
-                        </span>
-                        <input
-                          className="input metric"
-                          inputMode="decimal"
-                          defaultValue={be.target_weight_lbs ?? ""}
-                          placeholder="—"
-                          onBlur={(e) => onFieldChange(block.id, be.id, { target_weight_lbs: e.target.value ? parseFloat(e.target.value) : null })}
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between gap-2">
-                      <label className="flex items-center gap-2" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          defaultChecked={be.optional}
-                          style={{ width: 16, height: 16, accentColor: "var(--pink-500)" }}
-                          onChange={(e) => onFieldChange(block.id, be.id, { optional: e.target.checked })}
-                        />
-                        Optional exercise
-                      </label>
-                      {!be.directions && !directionsOpen[be.id] && (
-                        <button
-                          type="button"
-                          className="btn btn--quiet btn--sm"
-                          style={{ minHeight: 30, fontSize: 10 }}
-                          onClick={() => setDirectionsOpen((prev) => ({ ...prev, [be.id]: true }))}
-                        >
-                          + Directions
-                        </button>
-                      )}
-                    </div>
-                    {(be.directions || directionsOpen[be.id]) && (
-                      <textarea
-                        className="input mt-2"
-                        rows={2}
-                        placeholder="Specific directions for this exercise (this client's goal, tempo, form focus...)"
-                        defaultValue={be.directions ?? ""}
-                        onBlur={(e) => onFieldChange(block.id, be.id, { directions: e.target.value || null })}
-                      />
-                    )}
-                  </div>
-                ))}
-
-              <button type="button" className="btn btn--quiet btn--sm mt-3 w-full" onClick={() => setPicker({ blockId: block.id })}>
-                + Add exercise{block.block_exercises.length > 0 ? " (makes superset)" : ""}
+          {/* Day strip */}
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+            {days.map((d) => (
+              <button key={d.id} type="button" className="day-chip" aria-pressed={d.id === day.id} onClick={() => setActiveDayId(d.id)}>
+                <small>Day {d.day}</small>
+                <span className="metric">{d.day_blocks.reduce((a, b) => a + b.block_exercises.length, 0)}</span>
+                <small>{d.day_blocks.length ? "moves" : "empty"}</small>
               </button>
-            </section>
-          ))}
+            ))}
+          </div>
 
-        <button type="button" className="btn btn--ghost" onClick={onAddBlock}>
-          + Add block
-        </button>
-      </div>
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              className="input"
+              style={{ fontFamily: "var(--font-numeric)", fontWeight: 700, flex: 1 }}
+              defaultValue={day.title}
+              aria-label="Day title"
+              placeholder="Day name (Full Body, Upper, Legs...)"
+              onBlur={(e) => {
+                if (e.target.value !== day.title) {
+                  patchDay(day.id, (d) => ({ ...d, title: e.target.value }));
+                  renameDay(day.id, e.target.value);
+                  flashSaved();
+                }
+              }}
+            />
+            {day.day_blocks.length > 0 && days.some((d) => d.id !== day.id && d.day_blocks.length === 0) && (
+              <button type="button" className="btn btn--quiet btn--sm" onClick={onCopyToEmptyDays} disabled={busy}>
+                {busy ? "Copying..." : "Copy to empty days"}
+              </button>
+            )}
+          </div>
+
+          {/* Exercise list — one row per movement, supersets grouped */}
+          <div className="mt-4 grid gap-2">
+            {day.day_blocks.length === 0 && (
+              <div className="card card--sunken text-center" style={{ padding: "var(--space-8)" }}>
+                <p style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
+                  Empty day. Tap <strong>Add exercise</strong> — pick as many as you want in one go.
+                </p>
+              </div>
+            )}
+            {[...day.day_blocks]
+              .sort((a, b) => a.position - b.position)
+              .map((block, bi) => (
+                <section
+                  key={block.id}
+                  className="glass"
+                  style={{ padding: "var(--space-3)", borderLeft: block.block_exercises.length > 1 ? "3px solid var(--pink-500)" : undefined }}
+                >
+                  {block.block_exercises.length > 1 && (
+                    <p className="eyebrow eyebrow--accent" style={{ fontSize: 9, marginBottom: 6 }}>
+                      Superset · {block.block_exercises.length} moves back-to-back
+                    </p>
+                  )}
+                  {[...block.block_exercises]
+                    .sort((a, b) => a.position - b.position)
+                    .map((be) => {
+                      const thumb = thumbFor(be.exercise_id);
+                      const open = menuFor === be.id;
+                      return (
+                        <div key={be.id} className="grid gap-2" style={{ paddingTop: be.position > 1 ? 8 : 0, borderTop: be.position > 1 ? "var(--rule-hairline)" : undefined }}>
+                          <div className="flex items-center gap-2">
+                            {thumb ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={thumb} alt="" width={40} height={40} style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover", flexShrink: 0 }} />
+                            ) : (
+                              <span className="flex items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, background: "var(--pink-100)", color: "var(--pink-700)", fontFamily: "var(--font-numeric)", fontWeight: 700, flexShrink: 0 }}>
+                                {be.exercise_name[0]}
+                              </span>
+                            )}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontWeight: 600, color: "var(--text-strong)", fontSize: "var(--text-sm)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {be.exercise_name}
+                                {be.optional && <span className="chip chip--ghost ml-2" style={{ padding: "1px 7px" }}>Optional</span>}
+                              </p>
+                              <div className="flex items-center gap-1" style={{ marginTop: 4 }}>
+                                <input
+                                  className="input metric"
+                                  style={{ width: 44, minHeight: 34, padding: 4, textAlign: "center", fontSize: 13 }}
+                                  inputMode="numeric"
+                                  aria-label={`${be.exercise_name} sets`}
+                                  defaultValue={be.sets}
+                                  onBlur={(e) => onFieldChange(block.id, be.id, { sets: parseInt(e.target.value, 10) || 1 })}
+                                />
+                                <span style={{ color: "var(--text-faint)", fontSize: 12 }}>×</span>
+                                <input
+                                  className="input metric"
+                                  style={{ width: 62, minHeight: 34, padding: 4, textAlign: "center", fontSize: 13 }}
+                                  aria-label={`${be.exercise_name} reps`}
+                                  defaultValue={be.rep_range}
+                                  placeholder="8-10"
+                                  onBlur={(e) => onFieldChange(block.id, be.id, { rep_range: e.target.value || "8-10" })}
+                                />
+                                <span style={{ color: "var(--text-faint)", fontSize: 12 }}>@</span>
+                                <input
+                                  className="input metric"
+                                  style={{ width: 58, minHeight: 34, padding: 4, textAlign: "center", fontSize: 13 }}
+                                  inputMode="decimal"
+                                  aria-label={`${be.exercise_name} target pounds`}
+                                  defaultValue={be.target_weight_lbs ?? ""}
+                                  placeholder="lbs"
+                                  onBlur={(e) => onFieldChange(block.id, be.id, { target_weight_lbs: e.target.value ? parseFloat(e.target.value) : null })}
+                                />
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn btn--quiet btn--sm"
+                              style={{ minHeight: 34, padding: "0 10px" }}
+                              aria-label={`More for ${be.exercise_name}`}
+                              aria-expanded={open}
+                              onClick={() => setMenuFor(open ? null : be.id)}
+                            >
+                              ⋯
+                            </button>
+                          </div>
+
+                          {open && (
+                            <div className="grid gap-2" style={{ background: "var(--surface-sunken)", borderRadius: "var(--radius-md)", padding: "var(--space-3)" }}>
+                              <textarea
+                                className="input"
+                                rows={2}
+                                placeholder="Directions for this move (tempo, form focus, this client's goal)..."
+                                defaultValue={be.directions ?? ""}
+                                onBlur={(e) => onFieldChange(block.id, be.id, { directions: e.target.value || null })}
+                              />
+                              <div className="flex flex-wrap gap-2">
+                                <label className="flex items-center gap-2" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", cursor: "pointer" }}>
+                                  <input type="checkbox" defaultChecked={be.optional} style={{ width: 16, height: 16, accentColor: "var(--pink-500)" }} onChange={(e) => onFieldChange(block.id, be.id, { optional: e.target.checked })} />
+                                  Optional
+                                </label>
+                                {bi > 0 && block.block_exercises.length === 1 && (
+                                  <button type="button" className="btn btn--quiet btn--sm" onClick={() => onSupersetWithAbove(block.id, be)} disabled={busy}>
+                                    Superset with above
+                                  </button>
+                                )}
+                                {block.block_exercises.length > 1 && (
+                                  <button type="button" className="btn btn--quiet btn--sm" onClick={() => onSplitOut(block.id, be)} disabled={busy}>
+                                    Split out
+                                  </button>
+                                )}
+                                <button type="button" className="btn btn--quiet btn--sm" style={{ color: "var(--danger)" }} onClick={() => onRemoveExercise(block.id, be.id)} disabled={busy}>
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </section>
+              ))}
+          </div>
+
+          <button type="button" className="btn btn--primary mt-4 w-full" onClick={() => setPickerOpen(true)}>
+            + Add exercise
+          </button>
         </>
+      )}
+
+      {step === "weeks" && (
+        <>
+          <div className="mt-4 flex items-center gap-3">
+            <label className="flex items-center gap-2" style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
+              Program length
+              <input
+                className="input metric"
+                style={{ width: 64, minHeight: 38 }}
+                inputMode="numeric"
+                defaultValue={weeks}
+                onBlur={(e) => {
+                  const w = Math.max(1, Math.min(16, parseInt(e.target.value, 10) || 4));
+                  setWeeks(w);
+                  updateProgramMeta(version.programs.id, { weeks: w });
+                  flashSaved();
+                }}
+              />
+              weeks
+            </label>
+          </div>
+          <ProgressionGrid days={days} weeks={weeks} onSaved={flashSaved} setDays={setDays} />
+        </>
+      )}
+
+      {step === "assign" && (
+        <section className="glass mt-4" style={{ padding: "var(--space-5)" }}>
+          <h2 style={{ fontSize: "var(--text-lg)" }}>Send it to a client</h2>
+          <p className="mt-2" style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
+            {days.length} days · {totalExercises} moves · {weeks} weeks. The client gets their own private copy — this library plan stays untouched for reuse.
+          </p>
+          <div className="mt-4 grid gap-2">
+            {clients.map((c) => (
+              <button key={c.id} type="button" className="btn btn--primary w-full" onClick={() => onAssign(c)} disabled={busy || totalExercises === 0}>
+                {busy ? "Sending..." : `Send to ${c.full_name}`}
+              </button>
+            ))}
+            <button type="button" className="btn btn--ghost w-full" onClick={() => onAssign(null)} disabled={busy}>
+              Just save to library
+            </button>
+          </div>
+          {totalExercises === 0 && (
+            <p className="mt-3" style={{ fontSize: "var(--text-xs)", color: "var(--danger)" }}>
+              Add at least one exercise first.
+            </p>
+          )}
+        </section>
       )}
 
       {error && (
@@ -420,43 +533,33 @@ export function ProgramBuilder({
         </p>
       )}
 
-      {picker && (
-        <ExercisePicker
-          exercises={exercises}
-          onPick={(ex) => onPickExercise(picker.blockId, ex)}
-          onCreate={async (name, yt) => {
-            const res = await createExerciseQuick(name, yt, null);
-            if ("exercise" in res && res.exercise) {
-              setExercises((prev) => [...prev, { ...res.exercise, youtube_url: yt, cue: null }].sort((a, b) => a.name.localeCompare(b.name)));
-              onPickExercise(picker.blockId, res.exercise);
-            }
-          }}
-          onClose={() => setPicker(null)}
-        />
-      )}
-
-      {publishOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" style={{ background: "var(--surface-scrim)" }} role="dialog" aria-label="Publish program">
-          <div className="card w-full max-w-[420px]" style={{ borderRadius: "var(--radius-sheet)", margin: "var(--space-4)" }}>
-            <h2 style={{ fontSize: "var(--text-lg)" }}>Send it to a client</h2>
-            <p className="mt-2" style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
-              Assigning gives the client their own private copy — this library plan stays untouched for reuse.
-            </p>
-            <div className="mt-4 grid gap-2">
-              {clients.map((c) => (
-                <button key={c.id} type="button" className="btn btn--quiet w-full" onClick={() => onPublish(c)} disabled={busy}>
-                  {busy ? "Copying..." : c.full_name}
-                </button>
-              ))}
-              <button type="button" className="btn btn--ghost w-full" onClick={() => onPublish(null)} disabled={busy}>
-                Save to library only
-              </button>
-            </div>
-            <button type="button" className="btn btn--quiet btn--sm mt-4 w-full" onClick={() => setPublishOpen(false)}>
-              Cancel
+      {/* Sticky next-step bar */}
+      {step !== "assign" && (
+        <div
+          className="fixed left-0 right-0"
+          style={{ bottom: "calc(74px + env(safe-area-inset-bottom))", padding: "0 16px", zIndex: 40, pointerEvents: "none" }}
+        >
+          <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", justifyContent: "flex-end", pointerEvents: "auto" }}>
+            <button type="button" className="btn btn--highlight btn--sm" onClick={() => setStep(step === "days" ? "weeks" : "assign")}>
+              {step === "days" ? "Next: weeks →" : "Next: send →"}
             </button>
           </div>
         </div>
+      )}
+
+      {pickerOpen && (
+        <ExercisePicker
+          exercises={exercises}
+          onPick={(ex) => onPickExercise(ex)}
+          onCreate={async (name, yt) => {
+            const res = await createExerciseQuick(name, yt, null);
+            if ("error" in res && res.error) return res.error;
+            if (!("exercise" in res) || !res.exercise) return "Couldn't create that exercise";
+            setExercises((prev) => [...prev, { ...res.exercise, youtube_url: yt, cue: null }].sort((a, b) => a.name.localeCompare(b.name)));
+            return onPickExercise(res.exercise);
+          }}
+          onClose={() => setPickerOpen(false)}
+        />
       )}
     </main>
   );
@@ -469,13 +572,16 @@ function ExercisePicker({
   onClose,
 }: {
   exercises: ExerciseRow[];
-  onPick: (ex: { id: string; name: string }) => void;
-  onCreate: (name: string, youtube: string | null) => void;
+  onPick: (ex: { id: string; name: string }) => Promise<true | string>;
+  onCreate: (name: string, youtube: string | null) => Promise<true | string>;
   onClose: () => void;
 }) {
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
   const [newYt, setNewYt] = useState("");
+  const [added, setAdded] = useState<string[]>([]);
+  const [pending, setPending] = useState(false);
+  const [pickError, setPickError] = useState<string | null>(null);
 
   const filtered = exercises.filter((e) => e.name.toLowerCase().includes(q.toLowerCase()));
 
@@ -484,18 +590,46 @@ function ExercisePicker({
     return m ? `https://www.youtube-nocookie.com/embed/${m[1]}` : null;
   }
 
+  // Multi-add: picking keeps the sheet open so a whole day builds in one pass.
+  async function pick(e: ExerciseRow) {
+    if (pending) return; // one add at a time
+    setPending(true);
+    setPickError(null);
+    try {
+      const r = await onPick(e);
+      if (r !== true) return setPickError(r);
+      setAdded((prev) => [...prev, e.name]);
+      setQ("");
+    } catch (err) {
+      setPickError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" style={{ background: "var(--surface-scrim)" }} role="dialog" aria-label="Add exercise">
-      <div className="card flex w-full max-w-[440px] flex-col" style={{ borderRadius: "var(--radius-sheet)", margin: "var(--space-4)", maxHeight: "80dvh" }}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" style={{ background: "var(--surface-scrim)" }} role="dialog" aria-label="Add exercises">
+      <div className="card flex w-full max-w-[440px] flex-col" style={{ borderRadius: "var(--radius-sheet)", margin: "var(--space-4)", maxHeight: "85dvh" }}>
         <div className="flex items-center justify-between">
-          <h2 style={{ fontSize: "var(--text-lg)" }}>Add exercise</h2>
-          <button type="button" className="btn btn--quiet btn--sm" onClick={onClose}>
-            Close
+          <h2 style={{ fontSize: "var(--text-lg)" }}>Add exercises</h2>
+          <button type="button" className="btn btn--primary btn--sm" onClick={onClose} disabled={pending}>
+            {pending ? "Adding..." : added.length ? `Done · ${added.length} added` : "Done"}
           </button>
         </div>
+        {pickError && (
+          <p role="alert" className="mt-2" style={{ fontSize: "var(--text-sm)", color: "var(--danger)" }}>
+            {pickError}
+          </p>
+        )}
+        {added.length > 0 && (
+          <p className="mt-1" style={{ fontSize: "var(--text-xs)", color: "var(--pink-700)" }}>
+            Added: {added.slice(-3).join(", ")}
+            {added.length > 3 ? ` +${added.length - 3}` : ""}
+          </p>
+        )}
         <input
           className="input mt-3"
-          placeholder="Search your library..."
+          placeholder="Search — keep tapping to add more"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           autoFocus
@@ -505,12 +639,21 @@ function ExercisePicker({
             <button
               key={e.id}
               type="button"
-              className="flex items-center justify-between text-left"
-              style={{ padding: "var(--space-3)", borderRadius: "var(--radius-md)", border: "none", background: "transparent", cursor: "pointer", minHeight: 44 }}
-              onClick={() => onPick(e)}
+              className="flex items-center gap-3 text-left"
+              style={{ padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-md)", border: "none", background: "transparent", cursor: "pointer", minHeight: 48, opacity: pending ? 0.5 : 1 }}
+              onClick={() => pick(e)}
+              disabled={pending}
             >
-              <span style={{ fontWeight: 600, fontSize: "var(--text-sm)" }}>{e.name}</span>
-              {e.youtube_url && <span className="badge badge--pink">Video</span>}
+              {e.thumb_path ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={e.thumb_path} alt="" width={36} height={36} style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+              ) : (
+                <span className="flex items-center justify-center" style={{ width: 36, height: 36, borderRadius: 10, background: "var(--pink-100)", color: "var(--pink-700)", fontFamily: "var(--font-numeric)", fontWeight: 700, flexShrink: 0 }}>
+                  {e.name[0]}
+                </span>
+              )}
+              <span style={{ fontWeight: 600, fontSize: "var(--text-sm)", flex: 1 }}>{e.name}</span>
+              <span className="chip chip--ghost" style={{ padding: "2px 9px" }}>+ Add</span>
             </button>
           ))}
           {filtered.length === 0 && !creating && (
@@ -522,7 +665,28 @@ function ExercisePicker({
         {creating ? (
           <div className="mt-3 grid gap-2" style={{ borderTop: "var(--rule-hairline)", paddingTop: "var(--space-3)" }}>
             <input className="input" placeholder="YouTube link (optional)" value={newYt} onChange={(e) => setNewYt(e.target.value)} />
-            <button type="button" className="btn btn--primary" onClick={() => onCreate(q.trim(), normalizeYoutube(newYt))} disabled={!q.trim()}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={async () => {
+                if (pending) return;
+                setPending(true);
+                setPickError(null);
+                try {
+                  const r = await onCreate(q.trim(), normalizeYoutube(newYt));
+                  if (r !== true) return setPickError(r);
+                  setAdded((prev) => [...prev, q.trim()]);
+                  setCreating(false);
+                  setNewYt("");
+                  setQ("");
+                } catch (err) {
+                  setPickError(err instanceof Error ? err.message : "Something went wrong");
+                } finally {
+                  setPending(false);
+                }
+              }}
+              disabled={!q.trim() || pending}
+            >
               Create &ldquo;{q.trim()}&rdquo; and add
             </button>
           </div>

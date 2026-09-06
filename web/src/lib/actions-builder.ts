@@ -198,6 +198,42 @@ export async function addExerciseToBlock(
   return { ok: true, id: data.id as string };
 }
 
+/* Builder v3 mutations run as single transactional Postgres functions
+   (web/supabase/migrations/007_bbn_builder_v3.sql): positions are allocated
+   under a per-day row lock, and a block is never left behind empty. */
+
+export async function addExerciseToDay(dayId: string, exercise: { id: string; name: string }) {
+  const supabase = await admin();
+  const { data, error } = await supabase
+    .rpc("bbn_add_exercise_to_day", { p_day_id: dayId, p_exercise_id: exercise.id, p_exercise_name: exercise.name })
+    .single();
+  if (error) return { error: error.message };
+  const row = data as { block_id: string; be_id: string; out_position: number; sets: number; rep_range: string; target_weight_lbs: number | null };
+  return { ok: true, blockId: row.block_id, id: row.be_id, position: row.out_position, sets: row.sets, rep_range: row.rep_range, target_weight_lbs: row.target_weight_lbs };
+}
+
+export async function moveExerciseToBlock(beId: string, targetBlockId: string) {
+  const supabase = await admin();
+  const { data, error } = await supabase.rpc("bbn_move_exercise_to_block", { p_be_id: beId, p_target_block: targetBlockId });
+  if (error) return { error: error.message };
+  return { ok: true, position: data as number };
+}
+
+export async function removeExercise(beId: string) {
+  const supabase = await admin();
+  const { error } = await supabase.rpc("bbn_remove_exercise", { p_be_id: beId });
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
+export async function splitExerciseOut(beId: string) {
+  const supabase = await admin();
+  const { data, error } = await supabase.rpc("bbn_split_exercise_out", { p_be_id: beId }).single();
+  if (error) return { error: error.message };
+  const row = data as { block_id: string; out_position: number };
+  return { ok: true, blockId: row.block_id, position: row.out_position };
+}
+
 export async function updateBlockExercise(
   id: string,
   fields: { sets?: number; rep_range?: string; target_weight_lbs?: number | null; optional?: boolean; optional_note?: string | null; directions?: string | null },

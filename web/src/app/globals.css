@@ -426,6 +426,13 @@ textarea.input { min-height: 96px; resize: vertical; line-height: var(--leading-
     var(--paper-50);
 }
 
+.admin-dock { display: none; }
+@media (max-width: 350px) {
+  .dock { left: 6px; right: 6px; padding: 6px 4px; }
+  .dock__item { padding: 9px 9px; }
+  .dock__label { display: none; }
+}
+
 @media (max-width: 760px) {
   .admin-shell { flex-direction: column; }
   .admin-nav {
@@ -449,7 +456,11 @@ textarea.input { min-height: 96px; resize: vertical; line-height: var(--leading-
   .admin-nav__tabs::-webkit-scrollbar { display: none; }
   .admin-nav__tabs a { background: rgb(255 255 255 / 0.08); border: 1px solid rgb(255 255 255 / 0.1); font-size: var(--text-xs); padding: 7px 14px; }
   .admin-nav__foot { display: none; }
-  .admin-main { padding: var(--space-4); }
+  /* On phones the top bar is brand-only; navigation lives in the bottom dock. */
+  .admin-nav__tabs { display: none; }
+  .admin-nav { padding: var(--space-3) 0; }
+  .admin-dock { display: flex; }
+  .admin-main { padding: var(--space-4) var(--space-4) 110px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

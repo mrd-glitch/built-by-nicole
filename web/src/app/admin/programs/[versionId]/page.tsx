@@ -20,7 +20,7 @@ export default async function ProgramBuilderPage({
       )
       .eq("id", versionId)
       .single(),
-    supabase.from("exercises").select("id, name, youtube_url, cue").eq("archived", false).order("name"),
+    supabase.from("exercises").select("id, name, youtube_url, cue, thumb_path").eq("archived", false).order("name"),
     supabase.from("user_roles").select("user_id").eq("role", "client"),
   ]);
 
