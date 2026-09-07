@@ -60,3 +60,6 @@ Test client (dev): `test-client@championtkd.ca` — password given to Josh in se
 - Stripe billing: reserved via `profiles.status`; add `subscriptions` table when needed.
 - AI-drafted plans from intake snapshot (Claude API) once Nicole's system settles.
 - Design pass: glassmorphism cards/pills, real photography, look modeled on the reference app screenshots in `reference/inspiration/`.
+
+## Git + deploys (2026-09-06)
+Code lives at github.com/mrd-glitch/built-by-nicole (branch `main`). Vercel project `built-by-nicole` is git-connected with Root Directory = `web`; every push to `main` deploys to https://built-by-nicole.vercel.app automatically. The old `claude/built-by-nicole-marie-sPqnu` branch is the original static-site attempt — ignore it.
