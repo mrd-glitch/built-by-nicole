@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-07T05:21:44.101468+00:00",
+  "title": "Design System: Built by Nicole \u2014 public landing page",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(0.150 0.0042 285.92)",
+          "oklch(0.264 0.0042 285.92)",
+          "oklch(0.379 0.0042 285.92)",
+          "oklch(0.493 0.0042 285.92)",
+          "oklch(0.607 0.0042 285.92)",
+          "oklch(0.721 0.0042 285.92)",
+          "oklch(0.836 0.0042 285.92)",
+          "oklch(0.950 0.0042 285.92)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "tonalRamp": [
+          "oklch(0.150 0.0026 106.45)",
+          "oklch(0.264 0.0026 106.45)",
+          "oklch(0.379 0.0026 106.45)",
+          "oklch(0.493 0.0026 106.45)",
+          "oklch(0.607 0.0026 106.45)",
+          "oklch(0.721 0.0026 106.45)",
+          "oklch(0.836 0.0026 106.45)",
+          "oklch(0.950 0.0026 106.45)"
+        ]
+      },
+      "pink": {
+        "role": "primary",
+        "displayName": "Pink",
+        "tonalRamp": [
+          "oklch(0.150 0.2471 10.10)",
+          "oklch(0.264 0.2471 10.10)",
+          "oklch(0.379 0.2471 10.10)",
+          "oklch(0.493 0.2471 10.10)",
+          "oklch(0.607 0.2471 10.10)",
+          "oklch(0.721 0.2471 10.10)",
+          "oklch(0.836 0.2471 10.10)",
+          "oklch(0.950 0.2471 10.10)"
+        ]
+      },
+      "pink-deep": {
+        "role": "primary",
+        "displayName": "Pink Deep",
+        "tonalRamp": [
+          "oklch(0.150 0.2134 10.78)",
+          "oklch(0.264 0.2134 10.78)",
+          "oklch(0.379 0.2134 10.78)",
+          "oklch(0.493 0.2134 10.78)",
+          "oklch(0.607 0.2134 10.78)",
+          "oklch(0.721 0.2134 10.78)",
+          "oklch(0.836 0.2134 10.78)",
+          "oklch(0.950 0.2134 10.78)"
+        ]
+      },
+      "pink-hover": {
+        "role": "primary",
+        "displayName": "Pink Hover",
+        "tonalRamp": [
+          "oklch(0.150 0.1852 10.33)",
+          "oklch(0.264 0.1852 10.33)",
+          "oklch(0.379 0.1852 10.33)",
+          "oklch(0.493 0.1852 10.33)",
+          "oklch(0.607 0.1852 10.33)",
+          "oklch(0.721 0.1852 10.33)",
+          "oklch(0.836 0.1852 10.33)",
+          "oklch(0.950 0.1852 10.33)"
+        ]
+      },
+      "pink-soft": {
+        "role": "primary",
+        "displayName": "Pink Soft",
+        "tonalRamp": [
+          "oklch(0.150 0.1671 1.10)",
+          "oklch(0.264 0.1671 1.10)",
+          "oklch(0.379 0.1671 1.10)",
+          "oklch(0.493 0.1671 1.10)",
+          "oklch(0.607 0.1671 1.10)",
+          "oklch(0.721 0.1671 1.10)",
+          "oklch(0.836 0.1671 1.10)",
+          "oklch(0.950 0.1671 1.10)"
+        ]
+      },
+      "pink-selected": {
+        "role": "primary",
+        "displayName": "Pink Selected",
+        "tonalRamp": [
+          "oklch(0.150 0.0322 353.31)",
+          "oklch(0.264 0.0322 353.31)",
+          "oklch(0.379 0.0322 353.31)",
+          "oklch(0.493 0.0322 353.31)",
+          "oklch(0.607 0.0322 353.31)",
+          "oklch(0.721 0.0322 353.31)",
+          "oklch(0.836 0.0322 353.31)",
+          "oklch(0.950 0.0322 353.31)"
+        ]
+      },
+      "service-accent": {
+        "role": "primary",
+        "displayName": "Service Accent",
+        "tonalRamp": [
+          "oklch(0.150 0.1703 7.43)",
+          "oklch(0.264 0.1703 7.43)",
+          "oklch(0.379 0.1703 7.43)",
+          "oklch(0.493 0.1703 7.43)",
+          "oklch(0.607 0.1703 7.43)",
+          "oklch(0.721 0.1703 7.43)",
+          "oklch(0.836 0.1703 7.43)",
+          "oklch(0.950 0.1703 7.43)"
+        ]
+      },
+      "yellow": {
+        "role": "secondary",
+        "displayName": "Yellow",
+        "tonalRamp": [
+          "oklch(0.150 0.1908 101.03)",
+          "oklch(0.264 0.1908 101.03)",
+          "oklch(0.379 0.1908 101.03)",
+          "oklch(0.493 0.1908 101.03)",
+          "oklch(0.607 0.1908 101.03)",
+          "oklch(0.721 0.1908 101.03)",
+          "oklch(0.836 0.1908 101.03)",
+          "oklch(0.950 0.1908 101.03)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(0.150 0.0129 285.87)",
+          "oklch(0.264 0.0129 285.87)",
+          "oklch(0.379 0.0129 285.87)",
+          "oklch(0.493 0.0129 285.87)",
+          "oklch(0.607 0.0129 285.87)",
+          "oklch(0.721 0.0129 285.87)",
+          "oklch(0.836 0.0129 285.87)",
+          "oklch(0.950 0.0129 285.87)"
+        ]
+      },
+      "coaching-surface": {
+        "role": "neutral",
+        "displayName": "Coaching Surface",
+        "tonalRamp": [
+          "oklch(0.150 0.0053 106.50)",
+          "oklch(0.264 0.0053 106.50)",
+          "oklch(0.379 0.0053 106.50)",
+          "oklch(0.493 0.0053 106.50)",
+          "oklch(0.607 0.0053 106.50)",
+          "oklch(0.721 0.0053 106.50)",
+          "oklch(0.836 0.0053 106.50)",
+          "oklch(0.950 0.0053 106.50)"
+        ]
+      },
+      "application-surface": {
+        "role": "neutral",
+        "displayName": "Application Surface",
+        "tonalRamp": [
+          "oklch(0.150 0.0096 41.88)",
+          "oklch(0.264 0.0096 41.88)",
+          "oklch(0.379 0.0096 41.88)",
+          "oklch(0.493 0.0096 41.88)",
+          "oklch(0.607 0.0096 41.88)",
+          "oklch(0.721 0.0096 41.88)",
+          "oklch(0.836 0.0096 41.88)",
+          "oklch(0.950 0.0096 41.88)"
+        ]
+      },
+      "application-muted": {
+        "role": "neutral",
+        "displayName": "Application Muted",
+        "tonalRamp": [
+          "oklch(0.150 0.0099 36.52)",
+          "oklch(0.264 0.0099 36.52)",
+          "oklch(0.379 0.0099 36.52)",
+          "oklch(0.493 0.0099 36.52)",
+          "oklch(0.607 0.0099 36.52)",
+          "oklch(0.721 0.0099 36.52)",
+          "oklch(0.836 0.0099 36.52)",
+          "oklch(0.950 0.0099 36.52)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "tonalRamp": [
+          "oklch(0.150 0.0000 89.88)",
+          "oklch(0.264 0.0000 89.88)",
+          "oklch(0.379 0.0000 89.88)",
+          "oklch(0.493 0.0000 89.88)",
+          "oklch(0.607 0.0000 89.88)",
+          "oklch(0.721 0.0000 89.88)",
+          "oklch(0.836 0.0000 89.88)",
+          "oklch(0.950 0.0000 89.88)"
+        ]
+      },
+      "quiet-surface": {
+        "role": "neutral",
+        "displayName": "Quiet Surface",
+        "tonalRamp": [
+          "oklch(0.150 0.0053 106.50)",
+          "oklch(0.264 0.0053 106.50)",
+          "oklch(0.379 0.0053 106.50)",
+          "oklch(0.493 0.0053 106.50)",
+          "oklch(0.607 0.0053 106.50)",
+          "oklch(0.721 0.0053 106.50)",
+          "oklch(0.836 0.0053 106.50)",
+          "oklch(0.950 0.0053 106.50)"
+        ]
+      },
+      "quiet-hover": {
+        "role": "neutral",
+        "displayName": "Quiet Hover",
+        "tonalRamp": [
+          "oklch(0.150 0.0027 106.45)",
+          "oklch(0.264 0.0027 106.45)",
+          "oklch(0.379 0.0027 106.45)",
+          "oklch(0.493 0.0027 106.45)",
+          "oklch(0.607 0.0027 106.45)",
+          "oklch(0.721 0.0027 106.45)",
+          "oklch(0.836 0.0027 106.45)",
+          "oklch(0.950 0.0027 106.45)"
+        ]
+      },
+      "input-border": {
+        "role": "neutral",
+        "displayName": "Input Border",
+        "tonalRamp": [
+          "oklch(0.150 0.0083 286.22)",
+          "oklch(0.264 0.0083 286.22)",
+          "oklch(0.379 0.0083 286.22)",
+          "oklch(0.493 0.0083 286.22)",
+          "oklch(0.607 0.0083 286.22)",
+          "oklch(0.721 0.0083 286.22)",
+          "oklch(0.836 0.0083 286.22)",
+          "oklch(0.950 0.0083 286.22)"
+        ]
+      },
+      "divider": {
+        "role": "neutral",
+        "displayName": "Divider",
+        "tonalRamp": [
+          "oklch(0.150 0.0068 106.54)",
+          "oklch(0.264 0.0068 106.54)",
+          "oklch(0.379 0.0068 106.54)",
+          "oklch(0.493 0.0068 106.54)",
+          "oklch(0.607 0.0068 106.54)",
+          "oklch(0.721 0.0068 106.54)",
+          "oklch(0.836 0.0068 106.54)",
+          "oklch(0.950 0.0068 106.54)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted",
+        "tonalRamp": [
+          "oklch(0.150 0.0028 286.34)",
+          "oklch(0.264 0.0028 286.34)",
+          "oklch(0.379 0.0028 286.34)",
+          "oklch(0.493 0.0028 286.34)",
+          "oklch(0.607 0.0028 286.34)",
+          "oklch(0.721 0.0028 286.34)",
+          "oklch(0.836 0.0028 286.34)",
+          "oklch(0.950 0.0028 286.34)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Hero lead",
+        "purpose": "Sentence-case hero lead only."
+      },
+      "script": {
+        "displayName": "Personal script",
+        "purpose": "Brief personal emphasis and signature."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "landing-feedback",
+        "value": "140ms ease",
+        "purpose": "Application-link color/press and FAQ plus rotation."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "none",
+        "purpose": "Disable landing transitions for prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-photo",
+        "value": "1700px"
+      },
+      {
+        "name": "tablet",
+        "value": "1100px"
+      },
+      {
+        "name": "mobile",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Application link",
+      "kind": "button",
+      "description": "Landing anchor action with the actual arrow and interaction states.",
+      "html": "<a class=\"ds-apply\" href=\"#apply\">Apply for coaching<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M4 12h15m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a>",
+      "css": ".ds-apply{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-height:58px;box-sizing:border-box;padding:17px 25px;border-radius:3px;background:var(--pink-500,#FF1F6B);color:#0d0d0f;font:600 16px/1.4 var(--font-body,Barlow,\"Helvetica Neue\",Arial,sans-serif);text-decoration:none;transition:background 140ms ease,transform 140ms ease}.ds-apply:hover{background:var(--pink-700,#C9004E);color:#fff}.ds-apply:focus-visible{outline:3px solid var(--pink-700,#C9004E);outline-offset:5px;}.ds-apply:active{transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-apply{transition:none}}",
+      "refersTo": "button-apply"
+    },
+    {
+      "name": "Form action",
+      "kind": "button",
+      "description": "Existing intake action with landing-scoped shape and color.",
+      "html": "<button class=\"ds-form-button\">Next</button>",
+      "css": ".ds-form-button{font-family:var(--font-body,Barlow,\"Helvetica Neue\",Arial,sans-serif);display:inline-flex;align-items:center;justify-content:center;min-height:48px;border:0;border-radius:3px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1);padding:12px 22px;font-size:14px;background:var(--pink-700,#C9004E);color:var(--white,#fff);}.ds-form-button:hover{background:#a60040;}.ds-form-button:focus-visible{outline:3px solid var(--pink-700,#C9004E);outline-offset:5px;}.ds-form-button:active{transform:translateY(1px)}.ds-form-button:disabled{opacity:.5;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-form-button{transition:none}}",
+      "refersTo": "button-form"
+    },
+    {
+      "name": "Back action",
+      "kind": "button",
+      "description": "Existing intake action with landing-scoped shape and color.",
+      "html": "<button class=\"ds-back\">Back</button>",
+      "css": ".ds-back{font-family:var(--font-body,Barlow,\"Helvetica Neue\",Arial,sans-serif);display:inline-flex;align-items:center;justify-content:center;min-height:48px;border:0;border-radius:3px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1);padding:8px 14px;font-size:12px;background:var(--surface-sunken,#F2F2EE);color:var(--text-strong,#0D0D0F);}.ds-back:hover{background:var(--grey-200,#E2E2E0);}.ds-back:focus-visible{outline:3px solid var(--pink-700,#C9004E);outline-offset:5px;}.ds-back:active{transform:translateY(1px)}.ds-back:disabled{opacity:.5;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-back{transition:none}}",
+      "refersTo": "button-quiet"
+    },
+    {
+      "name": "Text field",
+      "kind": "input",
+      "description": "Labelled intake text field, with the landing focus override.",
+      "html": "<label class=\"ds-label\" for=\"ds-first-name\">What\u2019s your first name?</label><input class=\"ds-input\" id=\"ds-first-name\" type=\"text\"/>",
+      "css": ".ds-label{display:block;margin-bottom:8px;font:700 21px/1.55 var(--font-display,Montserrat,\"Helvetica Neue\",Arial,sans-serif);color:var(--text-strong,#0D0D0F)}.ds-input{font-family:var(--font-body,Barlow,\"Helvetica Neue\",Arial,sans-serif);width:100%;box-sizing:border-box;min-height:48px;padding:12px 16px;border:1px solid var(--grey-300,#C4C4CA);border-radius:3px;background:var(--white,#fff);color:var(--text-strong,#0D0D0F);font-size:17px;caret-color:var(--pink-700,#C9004E);transition:border-color 140ms cubic-bezier(.2,0,.2,1)}.ds-input:focus{border-color:var(--ink-900,#0D0D0F);outline:2px solid var(--yellow,#FFE500);outline-offset:1px}.ds-input:focus-visible{outline:3px solid var(--pink-700,#C9004E);outline-offset:5px;}@media(prefers-reduced-motion:reduce){.ds-input{transition:none}}",
+      "refersTo": "input"
+    },
+    {
+      "name": "Intake card",
+      "kind": "card",
+      "description": "Flat white wrapper for the existing intake, shown with its question heading.",
+      "html": "<section class=\"ds-card\"><span class=\"ds-progress\">Question 1 of 12</span><h3 class=\"ds-question\">What\u2019s your first name?</h3></section>",
+      "css": ".ds-card{background:var(--surface-card,#fff);padding:36px;border:0;border-radius:4px;box-shadow:none;color:var(--text-strong,#0D0D0F)}.ds-progress{font:700 11px/1.55 var(--font-display,Montserrat,\"Helvetica Neue\",Arial,sans-serif);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#6E6E76)}.ds-question{margin:24px 0 8px;font:700 21px/1.55 var(--font-display,Montserrat,\"Helvetica Neue\",Arial,sans-serif);letter-spacing:0}@media(max-width:760px){.ds-card{padding:24px 18px}}",
+      "refersTo": "form-card"
+    },
+    {
+      "name": "Desktop navigation",
+      "kind": "nav",
+      "description": "Header anchor group; login stays visible when the central navigation hides.",
+      "html": "<div class=\"ds-nav-field\"><nav class=\"ds-nav\" aria-label=\"Main navigation\"><a href=\"#nicole\">Meet Nicole</a><a href=\"#coaching\">The coaching</a><a href=\"#apply\">Let\u2019s get started <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M4 12h15m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a></nav><a class=\"ds-login\" href=\"/login\">Client login</a></div>",
+      "css": ".ds-nav-field{display:flex;gap:32px;align-items:center;background:#16120f;padding:16px}.ds-nav{display:flex;gap:32px;align-items:center}.ds-nav a,.ds-login{font-family:var(--font-body,Barlow,\"Helvetica Neue\",Arial,sans-serif);display:inline-flex;align-items:center;gap:12px;min-height:44px;color:var(--paper-50,#FAFAF8);font-size:15px;font-weight:500;text-decoration:none;transition:color 140ms cubic-bezier(.2,0,.2,1)}.ds-login{border-left:1px solid rgb(255 255 255 / .35);padding-left:28px}.ds-nav a:hover,.ds-login:hover{color:var(--pink-300,#FF7AA6)}.ds-nav a:focus-visible,.ds-login:focus-visible{outline:3px solid var(--yellow,#FFE500);outline-offset:5px}@media(max-width:1100px){.ds-nav{gap:22px}.ds-nav a{font-size:14px}.ds-nav a:last-child{display:none}}@media(max-width:760px){.ds-nav{display:none}.ds-login{margin-left:auto;padding-left:0;border:0;font-size:12px}}@media(prefers-reduced-motion:reduce){.ds-nav a,.ds-login{transition:none}}"
+    },
+    {
+      "name": "FAQ disclosure",
+      "kind": "custom",
+      "description": "Native disclosure with a rotating plus/minus.",
+      "html": "<details class=\"ds-faq\"><summary>Can I train at home?<span class=\"ds-plus\" aria-hidden=\"true\"></span></summary><p>Yes. Tell me what you have available, whether that\u2019s a gym membership, dumbbells and bands, or very little equipment. Your plan is built around what you can use.</p></details>",
+      "css": ".ds-faq{border-block:1px solid #d6d6d1;color:#0d0d0f}.ds-faq summary{display:flex;align-items:center;justify-content:space-between;gap:20px;list-style:none;cursor:pointer;padding:25px 0;font:600 17px/1.4 var(--font-body,Barlow,\"Helvetica Neue\",Arial,sans-serif)}.ds-faq summary::-webkit-details-marker{display:none}.ds-faq summary:hover{color:var(--pink-700,#C9004E)}.ds-faq summary:focus-visible{outline:3px solid var(--pink-700,#C9004E);outline-offset:5px;}.ds-plus{position:relative;flex-shrink:0;width:16px;height:16px}.ds-plus::before,.ds-plus::after{content:\"\";position:absolute;width:14px;height:1.5px;background:currentColor;top:7px;left:1px}.ds-plus::after{transform:rotate(90deg);transition:transform 140ms ease}.ds-faq[open] .ds-plus::after{transform:rotate(0)}.ds-faq p{font-family:var(--font-body,Barlow,\"Helvetica Neue\",Arial,sans-serif);padding:0 28px 26px 0;margin:0;font-size:17px;line-height:1.65;color:#55555d}@media(prefers-reduced-motion:reduce){.ds-plus::after{transition:none}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Personal editorial within the current Nicole brand",
+    "overview": "A warm, direct coaching page with strong typography, real Nicole photography, generous paper surfaces, and confident pink actions. The visual authority is the current circular `NSBadge` and supplied logo in `docs/brand-source`; `reference/NS-Design-System` is a historical brand and asset reference.\n\nThis document describes the implemented public landing page only. Source of truth: `web/src/app/page.tsx`, its scoped `landing.module.css`, and the shared tokens consumed there. Landing-specific intake styling lives beneath `.formWrap`; these rules do not redefine the client or admin portal. Product commitments live in `PRODUCT.md`; page strategy and pending content live in `docs/landing-direction.md`.",
+    "keyCharacteristics": [
+      "Real, unretouched Nicole photography with responsive crops.",
+      "Ink and paper fields, hot pink actions, sparing yellow details.",
+      "Large sentence-case headings, readable supporting copy, brief script accents.",
+      "Flat sections, fine dividers, native navigation and disclosure behavior."
+    ],
+    "rules": [],
+    "dos": [
+      "Do preserve the current circular NSBadge and Built by Nicole identity.",
+      "Do use real Nicole photographs and check facial visibility and text contrast at desktop and mobile crops.",
+      "Do keep landing adjustments scoped to the CSS module and its intake wrapper.",
+      "Do keep visible focus, native FAQ disclosure, and reduced-motion handling."
+    ],
+    "donts": [
+      "Don't invent testimonials, results, or family imagery; keep unapproved client stories out of production.",
+      "Don't replace the current logo with a historical reference asset.",
+      "Don't apply these landing-specific layout, shape, or shadow rules to the portals."
+    ]
+  },
+  "guidance": {
+    "photography": "Current hero: nicole-outdoor-portrait.webp. Introduction: nicole-whole-family.webp as a full-width field, fading horizontally to paper on desktop and downward below 900px. Athletic story: nicole-wnbf-celebration.webp at full original ratio; two editorial columns stack on mobile. No provisional-photo notes remain. Only testimonial placeholders are development-only. See docs/landing-assets.md for origins."
+  }
+}
