@@ -133,52 +133,6 @@ export async function updateToggles(clientId: string, toggles: { show_macros?: b
   return { ok: true };
 }
 
-/* ---------- client: workout logging ---------- */
-
-export async function startSession(dayId: string, assignmentId: string) {
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in" };
-  const { data, error } = await supabase
-    .from("workout_sessions")
-    .insert({ client_id: user.id, day_id: dayId, assignment_id: assignmentId })
-    .select("id")
-    .single();
-  if (error) return { error: error.message };
-  return { ok: true, sessionId: data.id as string };
-}
-
-export async function logSet(input: { sessionId: string; blockExerciseId: string; exerciseId: string; setIndex: number; reps: number; weightLbs: number }) {
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in" };
-  const { error } = await supabase.from("set_entries").upsert(
-    {
-      session_id: input.sessionId,
-      client_id: user.id,
-      block_exercise_id: input.blockExerciseId,
-      exercise_id: input.exerciseId,
-      set_index: input.setIndex,
-      reps: input.reps,
-      weight_lbs: input.weightLbs,
-    },
-    { onConflict: "session_id,block_exercise_id,set_index" },
-  );
-  if (error) return { error: error.message };
-  return { ok: true };
-}
-
-export async function finishSession(sessionId: string) {
-  const supabase = await supabaseServer();
-  await supabase.from("workout_sessions").update({ finished_at: new Date().toISOString() }).eq("id", sessionId);
-  revalidatePath("/app");
-  return { ok: true };
-}
-
 /* ---------- client: check-in ---------- */
 
 function isoWeekOf(d: Date, tz = "America/Edmonton") {

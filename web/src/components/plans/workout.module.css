@@ -1,0 +1,288 @@
+.program {
+  max-width: 900px;
+  margin-inline: auto;
+  min-width: 0;
+}
+.programHeader {
+  margin-bottom: 24px;
+}
+.programHeader h1 {
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.15;
+  font-weight: 800;
+}
+.programHeader p {
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-size: 14px;
+}
+.weeks,
+.days {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pink-700) var(--paper-100);
+}
+.weeks button,
+.days button {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 1px solid var(--grey-300);
+  border-radius: 12px;
+  background: var(--paper-50);
+  color: var(--text-strong);
+  text-align: left;
+  cursor: pointer;
+}
+.weeks button {
+  border-radius: 24px;
+  font-weight: 700;
+}
+.weeks button[aria-pressed="true"] {
+  background: var(--ink-900, #0d0d0f);
+  color: var(--paper-50);
+  border-color: var(--ink-900, #0d0d0f);
+}
+.weeks span {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+}
+.days button {
+  flex: 1 0 128px;
+}
+.days button[aria-pressed="true"] {
+  background: var(--pink-100);
+  border-color: var(--pink-700);
+  color: var(--pink-700);
+}
+.days strong,
+.days span,
+.days small {
+  display: block;
+}
+.days strong {
+  font-size: 16px;
+}
+.days span {
+  font-size: 12px;
+  margin-top: 2px;
+}
+.days small {
+  font-size: 10px;
+  margin-top: 6px;
+}
+.weeks button:hover,
+.days button:hover {
+  border-color: var(--pink-700);
+}
+.weeks button:focus-visible,
+.days button:focus-visible {
+  outline: 2px solid var(--pink-700);
+  outline-offset: 2px;
+}
+.weeks button:disabled,
+.days button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.periodStatus {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-block: 12px;
+}
+.workout {
+  padding-bottom: 32px;
+  min-width: 0;
+}
+.workoutTitle {
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+.date {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 16px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.date strong {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.complete {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--pink-100);
+  color: var(--pink-700);
+  font-size: 14px;
+}
+.exerciseBlock {
+  padding: 20px;
+  border: 1px solid var(--grey-300);
+  border-radius: 16px;
+  background: var(--paper-50);
+}
+.exercise + .exercise {
+  margin-top: 24px;
+  border-top: 1px solid var(--grey-300);
+  padding-top: 24px;
+}
+.prescription {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--pink-700);
+  background: var(--pink-100);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.targetWeight {
+  font-size: 12px;
+  margin-top: 8px;
+  color: var(--text-muted);
+}
+.instructions {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--grey-300);
+  font-size: 14px;
+}
+.instructions summary {
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 36px;
+}
+.instructions p {
+  margin-top: 8px;
+  max-width: 65ch;
+}
+.sets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.setBox {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+.setBox legend {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 8px;
+}
+.setRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.setRow label {
+  min-width: 0;
+}
+.setRow label span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.setRow input {
+  min-width: 0;
+  width: 100%;
+  height: 56px;
+  padding: 6px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  caret-color: var(--pink-700);
+}
+.setRow input:disabled {
+  opacity: 1;
+  color: var(--text-strong);
+  -webkit-text-fill-color: var(--text-strong);
+}
+.setBox[data-saved="true"] input {
+  border-color: var(--pink-700);
+  background: var(--pink-100);
+}
+.setRow input:focus-visible {
+  outline: 2px solid var(--pink-700);
+  outline-offset: 2px;
+}
+.setStatus {
+  min-height: 24px;
+  padding-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.setStatus [role="alert"] {
+  color: var(--pink-700);
+}
+.setStatus button {
+  white-space: normal;
+}
+.incomplete,
+.notice {
+  padding: 16px;
+  background: var(--paper-50);
+  border: 1px solid var(--grey-300);
+  margin-block: 12px;
+  font-size: 14px;
+}
+.incomplete button {
+  margin: 12px 8px 0 0;
+}
+@media (max-width: 600px) {
+  .sets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+  .exerciseBlock {
+    padding: 16px;
+  }
+  .days button {
+    flex-basis: 112px;
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 360px) {
+  .setRow {
+    gap: 4px;
+  }
+  .exerciseBlock {
+    padding: 12px;
+  }
+  .setRow label span {
+    font-size: 10px;
+  }
+}
+
+.bodyweight {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.repsOnly {
+  grid-template-columns: minmax(0, 1fr);
+}
+.bodyweightHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 16px;
+}
+.bodyweightHint button {
+  display: inline-block;
+  color: var(--pink-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-left: 8px;
+  min-height: 36px;
+  cursor: pointer;
+}

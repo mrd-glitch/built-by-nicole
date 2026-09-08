@@ -1,0 +1,1813 @@
+{
+  "columns": [
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "meal_plan_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "version",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "published_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "is_template",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "source_meal_plan_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "target_calories",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "target_protein_g",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "target_carbs_g",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "target_fat_g",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "target_protein_pct",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "target_carbs_pct",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "target_fat_pct",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_assignments",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meal_plan_assignments",
+      "column_name": "client_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_assignments",
+      "column_name": "version_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_assignments",
+      "column_name": "effective_from",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "NO",
+      "column_default": "CURRENT_DATE"
+    },
+    {
+      "table_name": "meal_plan_assignments",
+      "column_name": "active",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "table_name": "meal_plan_assignments",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "programs",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "programs",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "programs",
+      "column_name": "is_template",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "programs",
+      "column_name": "source_program_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "programs",
+      "column_name": "weeks",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "4"
+    },
+    {
+      "table_name": "programs",
+      "column_name": "days_per_week",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "3"
+    },
+    {
+      "table_name": "program_week_overrides",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "program_week_overrides",
+      "column_name": "block_exercise_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_week_overrides",
+      "column_name": "week",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_week_overrides",
+      "column_name": "sets",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "program_week_overrides",
+      "column_name": "target_weight_lbs",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "block_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "exercise_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "sets",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "target_weight_lbs",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "optional",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "position",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "show_macros",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "show_calories",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "food_journal_enabled",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "start_weight_lbs",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "goal_weight_lbs",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "daily_weight_enabled",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "user_roles",
+      "column_name": "user_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "user_roles",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "program_versions",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "program_versions",
+      "column_name": "program_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_versions",
+      "column_name": "version",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_versions",
+      "column_name": "published_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "program_days",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "program_days",
+      "column_name": "version_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_days",
+      "column_name": "week",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_days",
+      "column_name": "day",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_days",
+      "column_name": "position",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_name": "day_blocks",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "day_blocks",
+      "column_name": "day_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "day_blocks",
+      "column_name": "position",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_name": "program_assignments",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "program_assignments",
+      "column_name": "client_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_assignments",
+      "column_name": "version_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "program_assignments",
+      "column_name": "start_date",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "NO",
+      "column_default": "CURRENT_DATE"
+    },
+    {
+      "table_name": "program_assignments",
+      "column_name": "active",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "table_name": "program_assignments",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "exercises",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "exercises",
+      "column_name": "archived",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "exercises",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "workout_sessions",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "workout_sessions",
+      "column_name": "client_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "workout_sessions",
+      "column_name": "assignment_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "workout_sessions",
+      "column_name": "day_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "workout_sessions",
+      "column_name": "started_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "workout_sessions",
+      "column_name": "finished_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "session_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "client_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "block_exercise_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "exercise_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "set_index",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "reps",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "weight_lbs",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "logged_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "programs",
+      "column_name": "name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "status",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'active'::text"
+    },
+    {
+      "table_name": "programs",
+      "column_name": "description",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "description",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "target_mode",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'percent'::text"
+    },
+    {
+      "table_name": "set_entries",
+      "column_name": "unit",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'lbs'::text"
+    },
+    {
+      "table_name": "program_week_overrides",
+      "column_name": "rep_range",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "user_roles",
+      "column_name": "role",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "intro",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "pdf_path",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "exercise_name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "pdf_name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "rep_range",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "headline",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "metric_value",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "optional_note",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "metric_label",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "block_exercises",
+      "column_name": "directions",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "metric_note",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "mission_title",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "mission_body",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "callout_title",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "program_days",
+      "column_name": "title",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'Full Body'::text"
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "callout_body",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plan_versions",
+      "column_name": "closing_note",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "day_blocks",
+      "column_name": "label",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "day_blocks",
+      "column_name": "rest_note",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "exercises",
+      "column_name": "name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "exercises",
+      "column_name": "youtube_url",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "exercises",
+      "column_name": "cue",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "exercises",
+      "column_name": "image_path",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "exercises",
+      "column_name": "thumb_path",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "meal_plans",
+      "column_name": "name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "full_name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "''::text"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "first_name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "''::text"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "email",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "''::text"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "timezone",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'America/Edmonton'::text"
+    }
+  ],
+  "indexes": [
+    {
+      "indexdef": "CREATE UNIQUE INDEX programs_pkey ON public.programs USING btree (id)",
+      "indexname": "programs_pkey",
+      "tablename": "programs",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX program_week_overrides_pkey ON public.program_week_overrides USING btree (id)",
+      "indexname": "program_week_overrides_pkey",
+      "tablename": "program_week_overrides",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX program_week_overrides_block_exercise_id_week_key ON public.program_week_overrides USING btree (block_exercise_id, week)",
+      "indexname": "program_week_overrides_block_exercise_id_week_key",
+      "tablename": "program_week_overrides",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX block_exercises_pkey ON public.block_exercises USING btree (id)",
+      "indexname": "block_exercises_pkey",
+      "tablename": "block_exercises",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX block_exercises_exercise_created_idx ON public.block_exercises USING btree (exercise_id, created_at DESC)",
+      "indexname": "block_exercises_exercise_created_idx",
+      "tablename": "block_exercises",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX block_exercises_block_position_key ON public.block_exercises USING btree (block_id, \"position\")",
+      "indexname": "block_exercises_block_position_key",
+      "tablename": "block_exercises",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)",
+      "indexname": "profiles_pkey",
+      "tablename": "profiles",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX user_roles_pkey ON public.user_roles USING btree (user_id)",
+      "indexname": "user_roles_pkey",
+      "tablename": "user_roles",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX program_versions_pkey ON public.program_versions USING btree (id)",
+      "indexname": "program_versions_pkey",
+      "tablename": "program_versions",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX program_versions_program_id_version_key ON public.program_versions USING btree (program_id, version)",
+      "indexname": "program_versions_program_id_version_key",
+      "tablename": "program_versions",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX program_days_pkey ON public.program_days USING btree (id)",
+      "indexname": "program_days_pkey",
+      "tablename": "program_days",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX day_blocks_pkey ON public.day_blocks USING btree (id)",
+      "indexname": "day_blocks_pkey",
+      "tablename": "day_blocks",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX day_blocks_day_position_key ON public.day_blocks USING btree (day_id, \"position\")",
+      "indexname": "day_blocks_day_position_key",
+      "tablename": "day_blocks",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX program_assignments_pkey ON public.program_assignments USING btree (id)",
+      "indexname": "program_assignments_pkey",
+      "tablename": "program_assignments",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX one_active_program_per_client ON public.program_assignments USING btree (client_id) WHERE active",
+      "indexname": "one_active_program_per_client",
+      "tablename": "program_assignments",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX exercises_pkey ON public.exercises USING btree (id)",
+      "indexname": "exercises_pkey",
+      "tablename": "exercises",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX workout_sessions_pkey ON public.workout_sessions USING btree (id)",
+      "indexname": "workout_sessions_pkey",
+      "tablename": "workout_sessions",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX set_entries_pkey ON public.set_entries USING btree (id)",
+      "indexname": "set_entries_pkey",
+      "tablename": "set_entries",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX set_entries_session_id_block_exercise_id_set_index_key ON public.set_entries USING btree (session_id, block_exercise_id, set_index)",
+      "indexname": "set_entries_session_id_block_exercise_id_set_index_key",
+      "tablename": "set_entries",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX meal_plan_versions_pkey ON public.meal_plan_versions USING btree (id)",
+      "indexname": "meal_plan_versions_pkey",
+      "tablename": "meal_plan_versions",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX meal_plan_versions_meal_plan_id_version_key ON public.meal_plan_versions USING btree (meal_plan_id, version)",
+      "indexname": "meal_plan_versions_meal_plan_id_version_key",
+      "tablename": "meal_plan_versions",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX meal_plans_pkey ON public.meal_plans USING btree (id)",
+      "indexname": "meal_plans_pkey",
+      "tablename": "meal_plans",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX meal_plan_assignments_pkey ON public.meal_plan_assignments USING btree (id)",
+      "indexname": "meal_plan_assignments_pkey",
+      "tablename": "meal_plan_assignments",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX one_active_mealplan_per_client ON public.meal_plan_assignments USING btree (client_id) WHERE active",
+      "indexname": "one_active_mealplan_per_client",
+      "tablename": "meal_plan_assignments",
+      "schemaname": "public",
+      "tablespace": null
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "((user_id = auth.uid()) OR is_admin())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "user_roles",
+      "permissive": "PERMISSIVE",
+      "policyname": "read own role",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((id = auth.uid()) OR is_admin())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "own profile read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin write profiles",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(id = auth.uid())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "client update own display",
+      "schemaname": "public",
+      "with_check": "(id = auth.uid())"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(auth.uid() IS NOT NULL)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "exercises",
+      "permissive": "PERMISSIVE",
+      "policyname": "clients read exercises",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "exercises",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin write exercises",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "programs",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all programs",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "program_versions",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all program_versions",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "program_days",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all program_days",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "day_blocks",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all day_blocks",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "block_exercises",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all block_exercises",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "program_assignments",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all program_assignments",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "workout_sessions",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all workout_sessions",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "set_entries",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all set_entries",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(client_id = auth.uid())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "program_assignments",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read own assignments",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM (program_versions v\n JOIN program_assignments a ON ((a.version_id = v.id)))\n WHERE ((v.program_id = programs.id) AND (a.client_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "programs",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read assigned programs",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM program_assignments a\n WHERE ((a.version_id = program_days.version_id) AND (a.client_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "program_days",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read assigned days",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM (program_days d\n JOIN program_assignments a ON ((a.version_id = d.version_id)))\n WHERE ((d.id = day_blocks.day_id) AND (a.client_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "day_blocks",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read assigned blocks",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM ((day_blocks b\n JOIN program_days d ON ((d.id = b.day_id)))\n JOIN program_assignments a ON ((a.version_id = d.version_id)))\n WHERE ((b.id = block_exercises.block_id) AND (a.client_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "block_exercises",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read assigned block_exercises",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(client_id = auth.uid())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "workout_sessions",
+      "permissive": "PERMISSIVE",
+      "policyname": "client own sessions",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "workout_sessions",
+      "permissive": "PERMISSIVE",
+      "policyname": "client insert sessions",
+      "schemaname": "public",
+      "with_check": "((client_id = auth.uid()) AND is_active_client())"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(client_id = auth.uid())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "workout_sessions",
+      "permissive": "PERMISSIVE",
+      "policyname": "client update own sessions",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(client_id = auth.uid())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "set_entries",
+      "permissive": "PERMISSIVE",
+      "policyname": "client own set_entries",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "set_entries",
+      "permissive": "PERMISSIVE",
+      "policyname": "client insert set_entries",
+      "schemaname": "public",
+      "with_check": "((client_id = auth.uid()) AND is_active_client())"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(client_id = auth.uid())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "set_entries",
+      "permissive": "PERMISSIVE",
+      "policyname": "client update own set_entries",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "meal_plans",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all meal_plans",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "meal_plan_versions",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all meal_plan_versions",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "meal_plan_assignments",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all meal_plan_assignments",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(client_id = auth.uid())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "meal_plan_assignments",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read own mp assignment",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM (meal_plan_versions v\n JOIN meal_plan_assignments a ON ((a.version_id = v.id)))\n WHERE ((v.meal_plan_id = meal_plans.id) AND (a.client_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "meal_plans",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read assigned meal_plans",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM program_assignments a\n WHERE ((a.version_id = program_versions.id) AND (a.client_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "program_versions",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read assigned versions",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM meal_plan_assignments a\n WHERE ((a.version_id = meal_plan_versions.id) AND (a.client_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "meal_plan_versions",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read assigned mp versions",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "is_admin()",
+      "roles": [
+        "public"
+      ],
+      "tablename": "program_week_overrides",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin all pwo",
+      "schemaname": "public",
+      "with_check": "is_admin()"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM (((block_exercises be\n JOIN day_blocks b ON ((b.id = be.block_id)))\n JOIN program_days d ON ((d.id = b.day_id)))\n JOIN program_assignments a ON ((a.version_id = d.version_id)))\n WHERE ((be.id = program_week_overrides.block_exercise_id) AND (a.client_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "program_week_overrides",
+      "permissive": "PERMISSIVE",
+      "policyname": "client read assigned pwo",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "migrations": [
+    {
+      "version": "20260828182917",
+      "name": "bbn_fix_version_policies",
+      "statements": [
+        "-- Bug: unqualified `id` in these policies resolved to program_assignments.id /\n-- meal_plan_assignments.id, so clients could never read their assigned versions.\ndrop policy \"client read assigned versions\" on public.program_versions;\ncreate policy \"client read assigned versions\" on public.program_versions for select using (\n exists (select 1 from public.program_assignments a\n where a.version_id = program_versions.id and a.client_id = auth.uid())\n);\n\ndrop policy \"client read assigned mp versions\" on public.meal_plan_versions;\ncreate policy \"client read assigned mp versions\" on public.meal_plan_versions for select using (\n exists (select 1 from public.meal_plan_assignments a\n where a.version_id = meal_plan_versions.id and a.client_id = auth.uid())\n);"
+      ]
+    },
+    {
+      "version": "20260829051631",
+      "name": "bbn_exercise_thumbs",
+      "statements": [
+        "alter table public.exercises add column if not exists thumb_path text;"
+      ]
+    },
+    {
+      "version": "20260830004055",
+      "name": "bbn_v2_builder_library_macros_media",
+      "statements": [
+        "-- Builder v2: week-agnostic days + progression overrides + library templates\nalter table public.programs\n add column if not exists description text,\n add column if not exists is_template boolean not null default false,\n add column if not exists source_program_id uuid references public.programs(id),\n add column if not exists weeks int not null default 4,\n add column if not exists days_per_week int not null default 3;\n\nalter table public.block_exercises add column if not exists directions text;\n\ncreate table public.program_week_overrides (\n id uuid primary key default gen_random_uuid(),\n block_exercise_id uuid not null references public.block_exercises(id) on delete cascade,\n week int not null,\n sets int,\n rep_range text,\n target_weight_lbs numeric,\n unique (block_exercise_id, week)\n);\nalter table public.program_week_overrides enable row level security;\ncreate policy \"admin all pwo\" on public.program_week_overrides for all using (public.is_admin()) with check (public.is_admin());\ncreate policy \"client read assigned pwo\" on public.program_week_overrides for select using (\n exists (select 1 from public.block_exercises be\n join public.day_blocks b on b.id = be.block_id\n join public.program_days d on d.id = b.day_id\n join public.program_assignments a on a.version_id = d.version_id\n where be.id = program_week_overrides.block_exercise_id and a.client_id = auth.uid())\n);\n\n-- Meal plans: description, template, targets\nalter table public.meal_plans\n add column if not exists description text,\n add column if not exists is_template boolean not null default false,\n add column if not exists source_meal_plan_id uuid references public.meal_plans(id),\n add column if not exists target_calories numeric,\n add column if not exists target_mode text not null default 'percent' check (target_mode in ('percent','grams')),\n add column if not exists target_protein_g numeric,\n add column if not exists target_carbs_g numeric,\n add column if not exists target_fat_g numeric,\n add column if not exists target_protein_pct numeric,\n add column if not exists target_carbs_pct numeric,\n add column if not exists target_fat_pct numeric;\n\n-- Nicole's cached food library\ncreate table public.foods (\n id uuid primary key default gen_random_uuid(),\n name text not null,\n portion_label text not null default '',\n portion_grams numeric,\n calories numeric not null default 0,\n protein numeric not null default 0,\n carbs numeric not null default 0,\n fats numeric not null default 0,\n source text not null default 'manual' check (source in ('usda','ai','manual')),\n usda_fdc_id text,\n created_at timestamptz not null default now()\n);\nalter table public.foods enable row level security;\ncreate policy \"admin all foods\" on public.foods for all using (public.is_admin()) with check (public.is_admin());\ncreate policy \"clients read foods\" on public.foods for select using (auth.uid() is not null);\n\n-- Client meal check-offs\ncreate table public.meal_checkoffs (\n id uuid primary key default gen_random_uuid(),\n client_id uuid not null references public.profiles(id) on delete cascade,\n log_date date not null default current_date,\n meal_id uuid not null references public.meals(id) on delete cascade,\n status text not null check (status in ('ate_as_written','custom')),\n created_at timestamptz not null default now(),\n unique (client_id, log_date, meal_id)\n);\ncreate table public.meal_checkoff_items (\n id uuid primary key default gen_random_uuid(),\n checkoff_id uuid not null references public.meal_checkoffs(id) on delete cascade,\n client_id uuid not null references public.profiles(id) on delete cascade,\n meal_item_id uuid references public.meal_items(id) on delete set null,\n name text not null,\n calories numeric not null default 0,\n protein numeric not null default 0,\n carbs numeric not null default 0,\n fats numeric not null default 0\n);\nalter table public.meal_checkoffs enable row level security;\nalter table public.meal_checkoff_items enable row level security;\ncreate policy \"admin all mco\" on public.meal_checkoffs for all using (public.is_admin()) with check (public.is_admin());\ncreate policy \"admin all mcoi\" on public.meal_checkoff_items for all using (public.is_admin()) with check (public.is_admin());\ncreate policy \"client own mco\" on public.meal_checkoffs for all using (client_id = auth.uid()) with check (client_id = auth.uid());\ncreate policy \"client own mcoi\" on public.meal_checkoff_items for all using (client_id = auth.uid()) with check (client_id = auth.uid());\n\n-- Food journal entries gain macros\nalter table public.food_logs\n add column if not exists calories numeric,\n add column if not exists protein numeric,\n add column if not exists carbs numeric,\n add column if not exists fats numeric;\n\n-- Messaging media\nalter table public.messages\n add column if not exists kind text not null default 'text' check (kind in ('text','voice','video')),\n add column if not exists media_path text,\n add column if not exists duration_seconds numeric;\n\ninsert into storage.buckets (id, name, public) values ('message-media','message-media', false)\non conflict (id) do nothing;\ncreate policy \"msg media own read\" on storage.objects for select\n using (bucket_id = 'message-media' and (public.is_admin() or (storage.foldername(name))[1] = auth.uid()::text));\ncreate policy \"msg media own insert\" on storage.objects for insert\n with check (bucket_id = 'message-media' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));\n\n-- Check-in v2\nalter table public.checkins\n add column if not exists energy_rating int check (energy_rating between 1 and 5),\n add column if not exists focus_next_week text,\n add column if not exists late boolean not null default false;\n\ncreate table public.checkin_reopens (\n id uuid primary key default gen_random_uuid(),\n client_id uuid not null references public.profiles(id) on delete cascade,\n iso_week text not null,\n created_at timestamptz not null default now(),\n unique (client_id, iso_week)\n);\nalter table public.checkin_reopens enable row level security;\ncreate policy \"admin all reopens\" on public.checkin_reopens for all using (public.is_admin()) with check (public.is_admin());\ncreate policy \"client read own reopens\" on public.checkin_reopens for select using (client_id = auth.uid());"
+      ]
+    }
+  ],
+  "constraints": [
+    {
+      "name": "user_roles_role_check",
+      "table": "user_roles",
+      "definition": "CHECK ((role = ANY (ARRAY['admin'::text, 'client'::text])))"
+    },
+    {
+      "name": "user_roles_pkey",
+      "table": "user_roles",
+      "definition": "PRIMARY KEY (user_id)"
+    },
+    {
+      "name": "user_roles_user_id_fkey",
+      "table": "user_roles",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "profiles_status_check",
+      "table": "profiles",
+      "definition": "CHECK ((status = ANY (ARRAY['active'::text, 'paused'::text, 'archived'::text])))"
+    },
+    {
+      "name": "profiles_pkey",
+      "table": "profiles",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "profiles_id_fkey",
+      "table": "profiles",
+      "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "exercises_pkey",
+      "table": "exercises",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "programs_pkey",
+      "table": "programs",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "program_versions_pkey",
+      "table": "program_versions",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "program_versions_program_id_version_key",
+      "table": "program_versions",
+      "definition": "UNIQUE (program_id, version)"
+    },
+    {
+      "name": "program_versions_program_id_fkey",
+      "table": "program_versions",
+      "definition": "FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "program_days_pkey",
+      "table": "program_days",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "program_days_version_id_fkey",
+      "table": "program_days",
+      "definition": "FOREIGN KEY (version_id) REFERENCES program_versions(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "day_blocks_pkey",
+      "table": "day_blocks",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "day_blocks_day_id_fkey",
+      "table": "day_blocks",
+      "definition": "FOREIGN KEY (day_id) REFERENCES program_days(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "block_exercises_pkey",
+      "table": "block_exercises",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "block_exercises_block_id_fkey",
+      "table": "block_exercises",
+      "definition": "FOREIGN KEY (block_id) REFERENCES day_blocks(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "block_exercises_exercise_id_fkey",
+      "table": "block_exercises",
+      "definition": "FOREIGN KEY (exercise_id) REFERENCES exercises(id)"
+    },
+    {
+      "name": "program_assignments_pkey",
+      "table": "program_assignments",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "program_assignments_client_id_fkey",
+      "table": "program_assignments",
+      "definition": "FOREIGN KEY (client_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "program_assignments_version_id_fkey",
+      "table": "program_assignments",
+      "definition": "FOREIGN KEY (version_id) REFERENCES program_versions(id)"
+    },
+    {
+      "name": "workout_sessions_pkey",
+      "table": "workout_sessions",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "workout_sessions_client_id_fkey",
+      "table": "workout_sessions",
+      "definition": "FOREIGN KEY (client_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "workout_sessions_assignment_id_fkey",
+      "table": "workout_sessions",
+      "definition": "FOREIGN KEY (assignment_id) REFERENCES program_assignments(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "workout_sessions_day_id_fkey",
+      "table": "workout_sessions",
+      "definition": "FOREIGN KEY (day_id) REFERENCES program_days(id)"
+    },
+    {
+      "name": "set_entries_pkey",
+      "table": "set_entries",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "set_entries_session_id_block_exercise_id_set_index_key",
+      "table": "set_entries",
+      "definition": "UNIQUE (session_id, block_exercise_id, set_index)"
+    },
+    {
+      "name": "set_entries_session_id_fkey",
+      "table": "set_entries",
+      "definition": "FOREIGN KEY (session_id) REFERENCES workout_sessions(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "set_entries_client_id_fkey",
+      "table": "set_entries",
+      "definition": "FOREIGN KEY (client_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "set_entries_block_exercise_id_fkey",
+      "table": "set_entries",
+      "definition": "FOREIGN KEY (block_exercise_id) REFERENCES block_exercises(id)"
+    },
+    {
+      "name": "set_entries_exercise_id_fkey",
+      "table": "set_entries",
+      "definition": "FOREIGN KEY (exercise_id) REFERENCES exercises(id)"
+    },
+    {
+      "name": "meal_plans_pkey",
+      "table": "meal_plans",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "meal_plan_versions_pkey",
+      "table": "meal_plan_versions",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "meal_plan_versions_meal_plan_id_version_key",
+      "table": "meal_plan_versions",
+      "definition": "UNIQUE (meal_plan_id, version)"
+    },
+    {
+      "name": "meal_plan_versions_meal_plan_id_fkey",
+      "table": "meal_plan_versions",
+      "definition": "FOREIGN KEY (meal_plan_id) REFERENCES meal_plans(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "meal_plan_assignments_pkey",
+      "table": "meal_plan_assignments",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "meal_plan_assignments_client_id_fkey",
+      "table": "meal_plan_assignments",
+      "definition": "FOREIGN KEY (client_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "meal_plan_assignments_version_id_fkey",
+      "table": "meal_plan_assignments",
+      "definition": "FOREIGN KEY (version_id) REFERENCES meal_plan_versions(id)"
+    },
+    {
+      "name": "program_week_overrides_block_exercise_id_fkey",
+      "table": "program_week_overrides",
+      "definition": "FOREIGN KEY (block_exercise_id) REFERENCES block_exercises(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "meal_plans_source_meal_plan_id_fkey",
+      "table": "meal_plans",
+      "definition": "FOREIGN KEY (source_meal_plan_id) REFERENCES meal_plans(id)"
+    },
+    {
+      "name": "programs_source_program_id_fkey",
+      "table": "programs",
+      "definition": "FOREIGN KEY (source_program_id) REFERENCES programs(id)"
+    },
+    {
+      "name": "program_week_overrides_pkey",
+      "table": "program_week_overrides",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "program_week_overrides_block_exercise_id_week_key",
+      "table": "program_week_overrides",
+      "definition": "UNIQUE (block_exercise_id, week)"
+    },
+    {
+      "name": "meal_plans_target_mode_check",
+      "table": "meal_plans",
+      "definition": "CHECK ((target_mode = ANY (ARRAY['percent'::text, 'grams'::text])))"
+    }
+  ]
+}
