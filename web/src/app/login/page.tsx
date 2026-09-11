@@ -38,6 +38,9 @@ export default function LoginPage() {
         <button type="submit" className="btn btn--primary mt-6 w-full" disabled={pending}>
           {pending ? "Logging in..." : "Log in"}
         </button>
+        <Link href="/forgot" className="mt-4 block text-center" style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
+          Forgot your password?
+        </Link>
       </form>
 
       <p className="mt-6 text-center" style={{ color: "var(--grey-400)", fontSize: "var(--text-sm)" }}>

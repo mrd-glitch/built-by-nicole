@@ -15,7 +15,7 @@ export default async function ProgramsPage() {
     <main style={{ maxWidth: 860 }}>
       <div className="flex items-center justify-between">
         <h1 style={{ fontSize: "var(--text-2xl)" }}>Programs</h1>
-        <NewProgramButton />
+        <div className="flex flex-wrap gap-2"><Link className="btn btn--ghost btn--sm" href="/admin/programs/import">Import coaching PDF</Link><NewProgramButton /></div>
       </div>
       <p className="mt-2" style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>
         Build it once, assign it, watch the numbers come back.{" "}

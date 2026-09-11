@@ -147,6 +147,12 @@ export default async function ClientHome() {
         />
       </div>
 
+      <p className="mt-6 text-center" style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)" }}>
+        <Link href="/set-password" style={{ color: "var(--text-muted)" }}>
+          Change password
+        </Link>
+      </p>
+
       {/* Last week ratings */}
       {latest && (
         <section className="card mt-4" style={{ padding: "var(--space-4)" }}>

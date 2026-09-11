@@ -15,7 +15,7 @@ export default async function MealPlansPage() {
     <main style={{ maxWidth: 860 }}>
       <div className="flex items-center justify-between">
         <h1 style={{ fontSize: "var(--text-2xl)" }}>Meal plans</h1>
-        <NewMealPlanButton />
+        <div className="flex gap-2"><Link className="btn btn--quiet" href="/admin/programs/import">Import coaching PDF</Link><NewMealPlanButton /></div>
       </div>
 
       <div className="mt-6 grid gap-3">

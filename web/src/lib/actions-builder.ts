@@ -74,75 +74,13 @@ export async function setWeekOverride(
 
 /* Copy-on-assign: deep-copy the program so the client gets a private version;
    the library master never changes. */
-export async function assignProgramCopy(versionId: string, clientId: string, clientName: string) {
+export async function assignProgramCopy(versionId: string, clientId: string) {
   const supabase = await admin();
-  const { data: src, error: sErr } = await supabase
-    .from("program_versions")
-    .select("id, program_id, programs(name, description, weeks, days_per_week), program_days(id, week, day, title, position, day_blocks(id, label, rest_note, position, block_exercises(id, exercise_id, exercise_name, sets, rep_range, target_weight_lbs, optional, optional_note, directions, position, program_week_overrides(week, sets, rep_range, target_weight_lbs))))")
-    .eq("id", versionId)
-    .single();
-  if (sErr || !src) return { error: sErr?.message ?? "Program not found" };
-
-  const meta = src.programs as unknown as { name: string; description: string | null; weeks: number; days_per_week: number };
-  const first = clientName.split(" ")[0] || "client";
-  const { data: prog, error: pErr } = await supabase
-    .from("programs")
-    .insert({
-      name: `${meta.name} · ${first}`,
-      description: meta.description,
-      weeks: meta.weeks,
-      days_per_week: meta.days_per_week,
-      is_template: false,
-      source_program_id: src.program_id,
-    })
-    .select("id")
-    .single();
-  if (pErr) return { error: pErr.message };
-  const { data: ver, error: vErr } = await supabase
-    .from("program_versions")
-    .insert({ program_id: prog.id, version: 1, published_at: new Date().toISOString() })
-    .select("id")
-    .single();
-  if (vErr) return { error: vErr.message };
-
-  for (const d of src.program_days ?? []) {
-    const { data: nd, error: dErr } = await supabase
-      .from("program_days")
-      .insert({ version_id: ver.id, week: d.week, day: d.day, title: d.title, position: d.position })
-      .select("id")
-      .single();
-    if (dErr) return { error: dErr.message };
-    for (const b of d.day_blocks ?? []) {
-      const { data: nb, error: bErr } = await supabase
-        .from("day_blocks")
-        .insert({ day_id: nd.id, label: b.label, rest_note: b.rest_note, position: b.position })
-        .select("id")
-        .single();
-      if (bErr) return { error: bErr.message };
-      for (const e of b.block_exercises ?? []) {
-        const { program_week_overrides: overrides, id: _oldId, ...fields } = e;
-        const { data: ne, error: eErr } = await supabase
-          .from("block_exercises")
-          .insert({ ...fields, block_id: nb.id })
-          .select("id")
-          .single();
-        if (eErr) return { error: eErr.message };
-        const oRows = (overrides ?? []).map((o) => ({ ...o, block_exercise_id: ne.id }));
-        if (oRows.length) {
-          const { error: oErr } = await supabase.from("program_week_overrides").insert(oRows);
-          if (oErr) return { error: oErr.message };
-        }
-      }
-    }
-  }
-
-  await supabase.from("program_assignments").update({ active: false }).eq("client_id", clientId).eq("active", true);
-  const { error: aErr } = await supabase.from("program_assignments").insert({ client_id: clientId, version_id: ver.id });
-  if (aErr) return { error: aErr.message };
-
+  const { data, error } = await supabase.rpc("bbn_assign_program_copy", { p_version: versionId, p_client: clientId });
+  if (error) return { error: error.message };
   revalidatePath("/admin/programs");
   revalidatePath(`/admin/clients/${clientId}`);
-  return { ok: true, versionId: ver.id as string };
+  return data as { ok: true; versionId: string };
 }
 
 export async function renameDay(dayId: string, title: string) {
@@ -255,7 +193,7 @@ export async function copyDayBlocks(fromDayId: string, toDayId: string) {
   const supabase = await admin();
   const { data: blocks, error } = await supabase
     .from("day_blocks")
-    .select("label, rest_note, position, block_exercises(exercise_id, exercise_name, sets, rep_range, target_weight_lbs, optional, optional_note, position)")
+    .select("label, rest_note, position, block_exercises(exercise_id, exercise_name, sets, set_types, rep_range, target_weight_lbs, optional, optional_note, position)")
     .eq("day_id", fromDayId)
     .order("position");
   if (error) return { error: error.message };
@@ -421,76 +359,14 @@ export async function updateMealPlanMeta(
 }
 
 /* Copy-on-assign for meal plans, mirroring programs. */
-export async function assignMealPlanCopy(versionId: string, clientId: string, clientName: string) {
+export async function assignMealPlanCopy(versionId: string, clientId: string) {
   const supabase = await admin();
-  const { data: src, error: sErr } = await supabase
-    .from("meal_plan_versions")
-    .select("id, meal_plan_id, intro, pdf_path, pdf_name, headline, metric_value, metric_label, metric_note, mission_title, mission_body, callout_title, callout_body, closing_note, meal_plans(name, description, target_calories, target_mode, target_protein_g, target_carbs_g, target_fat_g, target_protein_pct, target_carbs_pct, target_fat_pct), meals(id, name, note, chip_text, position, meal_items(name, portion, protein, carbs, fats, calories, position), meal_options(position, text, tag, calories, protein, carbs, fats))")
-    .eq("id", versionId)
-    .single();
-  if (sErr || !src) return { error: sErr?.message ?? "Meal plan not found" };
-
-  const meta = src.meal_plans as unknown as Record<string, unknown> & { name: string };
-  const first = clientName.split(" ")[0] || "client";
-  const { name, ...targets } = meta;
-  const { data: plan, error: pErr } = await supabase
-    .from("meal_plans")
-    .insert({ ...targets, name: `${name} · ${first}`, is_template: false, source_meal_plan_id: src.meal_plan_id })
-    .select("id")
-    .single();
-  if (pErr) return { error: pErr.message };
-  const { data: ver, error: vErr } = await supabase
-    .from("meal_plan_versions")
-    .insert({
-      meal_plan_id: plan.id,
-      version: 1,
-      intro: src.intro,
-      pdf_path: src.pdf_path,
-      pdf_name: src.pdf_name,
-      headline: src.headline,
-      metric_value: src.metric_value,
-      metric_label: src.metric_label,
-      metric_note: src.metric_note,
-      mission_title: src.mission_title,
-      mission_body: src.mission_body,
-      callout_title: src.callout_title,
-      callout_body: src.callout_body,
-      closing_note: src.closing_note,
-      published_at: new Date().toISOString(),
-    })
-    .select("id")
-    .single();
-  if (vErr) return { error: vErr.message };
-
-  for (const m of src.meals ?? []) {
-    const { data: nm, error: mErr } = await supabase
-      .from("meals")
-      .insert({ version_id: ver.id, name: m.name, note: m.note, chip_text: m.chip_text, position: m.position })
-      .select("id")
-      .single();
-    if (mErr) return { error: mErr.message };
-    const rows = (m.meal_items ?? []).map((i) => ({ ...i, meal_id: nm.id }));
-    if (rows.length) {
-      const { error: iErr } = await supabase.from("meal_items").insert(rows);
-      if (iErr) return { error: iErr.message };
-    }
-    const oRows = (m.meal_options ?? []).map((o) => ({ ...o, meal_id: nm.id }));
-    if (oRows.length) {
-      const { error: oErr } = await supabase.from("meal_options").insert(oRows);
-      if (oErr) return { error: oErr.message };
-    }
-  }
-
-  await supabase.from("meal_plan_assignments").update({ active: false }).eq("client_id", clientId).eq("active", true);
-  const { error: aErr } = await supabase.from("meal_plan_assignments").insert({ client_id: clientId, version_id: ver.id });
-  if (aErr) return { error: aErr.message };
-
+  const { data, error } = await supabase.rpc("bbn_assign_meal_copy", { p_version: versionId, p_client: clientId });
+  if (error) return { error: error.message };
   revalidatePath("/admin/meal-plans");
   revalidatePath(`/admin/clients/${clientId}`);
-  return { ok: true, versionId: ver.id as string };
+  return data as { ok: true; versionId: string };
 }
-
-/* ---------- meal options (pick-one rows) ---------- */
 
 export async function addMealOption(mealId: string, position: number) {
   const supabase = await admin();

@@ -1,0 +1,19 @@
+## Client PDF design
+
+Match the current NS Coaching site without turning the PDF into a screenshot of a web page.
+
+- **Page:** US Letter portrait by default; change to A4 when requested. Use a paper `#FAFAF8` or white body with comfortable 0.6-inch side margins and generous table spacing.
+- **Letterhead:** a full-width ink-black `#0D0D0F` header, approximately 1 inch tall on the first page, with `assets/ns-lockup-paper-pink-on-ink.png` at its original aspect ratio. Place the plan title and client information below the header on paper. Use a slimmer repeating header on following pages.
+- **Palette:** ink `#0D0D0F`, paper `#FAFAF8`, hot pink `#FF1F6B`, pale pink `#FFE4EE`, deep pink `#C9004E`, grey `#6E6E76`, and yellow `#FFE500` sparingly. Use deep pink for small colored text; reserve hot pink for graphic accents. No busy gradients, decorative fitness clip art, or stock photography.
+- **Type:** the site uses Bricolage Grotesque for portal headings, Barlow for body/UI, and Montserrat for strong display accents. Prefer those families when available and appropriately licensed. Embed fonts supported by the PDF tool. Use a clean sans-serif fallback when unavailable and disclose the substitution; never claim an exact font match when substituting. Body/table text should generally be 10.5–11 pt or larger, with clear headings and tabular numerals.
+- **Logo assets:** keep the supplied NS lockups unchanged, uncropped, unwarped, and readable. The alternate `assets/ns-lockup-ink-pink-on-paper.png` is available for paper backgrounds. If only this Markdown file was supplied, ask for the logo or use a plain NS Coaching text heading and disclose the fallback. Do not invent a replacement logo.
+- **Content hierarchy:** plan title, client name if supplied, length/frequency, concise coach introduction, then clear Week and Day headings. Use a compact exercise prescription followed by individual set rows when targets or labels differ. Show rest and instructions close to their exercise; make supersets and the order of work explicit.
+- **Tables:** use columns appropriate to the content: Set, Type, Target reps, Target weight (lb), and Rest. Blank client logging columns may be added when requested. Avoid squeezing seven columns into a narrow page. Split instructions beneath the exercise instead of shrinking text. Repeat table headers on continuation pages and keep an exercise heading with its first set rows.
+- **Sign-off:** finish with a short sign-off such as “With you every step, Nicole” when Nicole approves that wording. Use her genuine signature image if provided. Otherwise render “Nicole” as a typographic sign-off, not as a claimed handwritten signature. MoonTime is the site's script font, but its font files are not included because their project documentation restricts redistribution. Use MoonTime only when Nicole supplies an appropriately licensed copy in the working environment; otherwise use a restrained italic sans-serif sign-off. Do not fabricate her handwriting or use the sign-off as evidence she approved unreviewed content.
+- **Signature line:** the existing brand phrase is “Nothing changes if nothing changes.” It may appear once near the closing sign-off, without replacing practical coaching instructions.
+- **Footer:** page X of Y, plan ID, revision, and a short checksum identifier. Print the full checksum once in a small, readable document-reference line. Keep all workout content clear of headers and footers.
+
+The client PDF should be pleasant to read on a phone and printable on paper. It should contain no machine payload pages, internal prompts, importer implementation notes, or sample client results.
+
+
+For meals, use clear meal headings, portions and complete alternatives. Put schedule/meal notes next to the relevant meals. Show only supplied nutrition numbers. A combined client PDF has workout and meal sections.

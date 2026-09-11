@@ -51,7 +51,7 @@ export function ClientProgram({
         window.history.replaceState(
           null,
           "",
-          `/app/fitness?week=${week}&day=${day}`,
+          `/app/fitness?week=${result.data.selectedWeek}&day=${result.data.selectedDay}`,
         );
     } catch {
       setError(

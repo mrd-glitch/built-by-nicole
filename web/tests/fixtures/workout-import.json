@@ -1,0 +1,16 @@
+{
+  "schema":"bbn.workout-import.v1","plan_id":"d6a253ec-5ce0-4aab-a386-a157ba73df41","revision":1,"created_on":"2026-09-08","name":"Import review example","client_name":"Alex (example only)","unit":"lb","intro":"Use controlled movement.",
+  "coach_notes":[{"scope":"client","week":null,"day":null,"exercise_key":null,"text":"PRIVATE_COACH_ONLY: discuss scheduling at check-in."}],
+  "weeks":[
+    {"number":1,"instructions":"Week one: learn the movements.","days":[{"number":1,"name":"Strength foundations","instructions":"Take your time today.","exercises":[
+      {"key":"w1-d1-e1","name":"Goblet squat","library_id":null,"superset_group":null,"optional":false,"instructions":"Keep your heels down.","sets":[
+        {"number":1,"type":"warmup","target_reps":"10","target_weight_lb":0,"rest_seconds":60,"instructions":"Easy warm-up."},
+        {"number":2,"type":"working","target_reps":"5-7","target_weight_lb":50,"rest_seconds":90,"instructions":"Keep two reps in reserve."}
+      ]}
+    ]}]},
+    {"number":2,"instructions":"Week two: a different workout.","days":[{"number":1,"name":"Upper body","instructions":"Stay controlled.","exercises":[
+      {"key":"w2-d1-e1","name":"Dumbbell row","library_id":null,"superset_group":"A","optional":false,"instructions":"Pause at the top.","sets":[{"number":1,"type":"working","target_reps":"8-10","target_weight_lb":null,"rest_seconds":0,"instructions":""}]},
+      {"key":"w2-d1-e2","name":"Goblet squat","library_id":null,"superset_group":"A","optional":true,"instructions":"Complete with the row, then rest.","sets":[{"number":1,"type":"working","target_reps":"6","target_weight_lb":25,"rest_seconds":120,"instructions":""}]}
+    ]}]}
+  ]
+}

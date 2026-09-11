@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   ProgramBuilder,
@@ -86,7 +87,8 @@ const version: BuilderVersion = {
             id: `70000000-0000-4000-8000-00000000000${i + 1}`,
             exercise_id: library[i].id,
             exercise_name: library[i].name,
-            sets: i === 0 ? 7 : 3,
+            sets: i === 0 ? 7 : 4,
+            set_types: i === 0 ? [] : ["warmup", "warmup", "working", "working"],
             rep_range: i === 0 ? "7" : "5–7",
             target_weight_lbs: i === 0 ? 0 : null,
             optional: false,
@@ -304,6 +306,7 @@ export function PlanReview() {
         padding: "24px clamp(16px,3vw,48px)",
       }}
     >
+      <Link href="/dev/import-review">Review the workout + meal PDF importer</Link>
       <div
         style={{
           borderBottom: "1px solid var(--grey-300)",

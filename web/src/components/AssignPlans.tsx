@@ -65,8 +65,8 @@ export function AssignPlans({
     setError(null);
     const res =
       kind === "program"
-        ? await assignProgramCopy(versionId, clientId, clientName)
-        : await assignMealPlanCopy(versionId, clientId, clientName);
+        ? await assignProgramCopy(versionId, clientId)
+        : await assignMealPlanCopy(versionId, clientId);
     setBusy(false);
     if (res && "error" in res && res.error) return setError(res.error);
     setPicker(null);

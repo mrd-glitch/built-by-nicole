@@ -372,3 +372,55 @@ export async function saveDailyWeight(weightLbs: number) {
   revalidatePath("/app");
   return { ok: true };
 }
+
+/* ---------- password recovery + access control ---------- */
+
+function siteUrl() {
+  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3400";
+}
+
+/* Public: "Forgot password?" — always answers the same way so emails can't be probed. */
+export async function requestPasswordReset(_prev: { ok?: boolean } | undefined, formData: FormData) {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  if (email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    const supabase = await supabaseServer();
+    await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl()}/set-password` });
+  }
+  return { ok: true };
+}
+
+/* Admin: email the client a reset link (same email Supabase would send from the login page). */
+export async function adminSendPasswordReset(clientId: string) {
+  const { supabase } = await requireAdmin();
+  const { data: profile } = await supabase.from("profiles").select("email").eq("id", clientId).single();
+  if (!profile?.email) return { error: "No email on this profile." };
+  const { error } = await supabase.auth.resetPasswordForEmail(profile.email, { redirectTo: `${siteUrl()}/set-password` });
+  if (error) return { error: error.message };
+  return { ok: true, email: profile.email };
+}
+
+/* Admin: set a one-time temporary password Nicole can read to the client by phone/text.
+   Returned once, never stored in plain text anywhere. */
+export async function adminSetTempPassword(clientId: string) {
+  await requireAdmin();
+  const svc = serviceClient();
+  const words = ["strong", "steady", "plate", "lift", "sunday", "trend", "quiet", "showup", "protein", "rep"];
+  const temp = `${words[Math.floor(Math.random() * words.length)]}-${words[Math.floor(Math.random() * words.length)]}-${Math.floor(100 + Math.random() * 900)}`;
+  const { error } = await svc.auth.admin.updateUserById(clientId, { password: temp });
+  if (error) return { error: error.message };
+  return { ok: true, temp };
+}
+
+/* Admin: pause = client cannot log in (existing sessions die within the hour);
+   resume lifts it. Data is never touched. */
+export async function setClientAccess(clientId: string, paused: boolean) {
+  const { supabase } = await requireAdmin();
+  const svc = serviceClient();
+  const { error: banErr } = await svc.auth.admin.updateUserById(clientId, { ban_duration: paused ? "876000h" : "none" });
+  if (banErr) return { error: banErr.message };
+  const { error } = await supabase.from("profiles").update({ status: paused ? "paused" : "active" }).eq("id", clientId);
+  if (error) return { error: error.message };
+  revalidatePath(`/admin/clients/${clientId}`);
+  revalidatePath("/admin/clients");
+  return { ok: true };
+}

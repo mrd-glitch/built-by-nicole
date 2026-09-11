@@ -6,7 +6,10 @@ import {
   actualSetError,
   documentError,
   resolvePrescription,
+  resolveSetTypes,
+  setHeading,
 } from "../src/lib/plans/model";
+import { validateImport, importDocument, initialMatches } from "../src/lib/plans/import/format";
 const id = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const [
@@ -762,6 +765,142 @@ test("Drafts and workout history against isolated PostgreSQL", async (t) => {
       );
     },
   );
+  await t.test("set labels upgrade, draft persistence, weekly counts and historical snapshots", async () => {
+    await as(other);
+    const before = await call("bbn_client_workout", [1, 1]);
+    const originalSnapshot = before.session.day;
+    assert.equal(originalSnapshot.day_blocks[0].block_exercises[0].set_types, undefined);
+    const active = (await sql<{version_id: string}>("select version_id from program_assignments where client_id=$1 and active", [other]))[0];
+    await as(coach);
+    const legacyDraft = await call("bbn_open_plan_draft", [active.version_id]);
+    await db.exec("reset role");
+    await db.exec(await readFile(new URL("../supabase/migrations/009_bbn_set_types.sql", import.meta.url), "utf8"));
+    await as(coach);
+    const oldSave = await call("bbn_save_plan_draft", [legacyDraft.id, legacyDraft.revision, JSON.stringify(legacyDraft.document)]);
+    const ex = legacyDraft.document.days[0].blocks[0].exercises[0];
+    for (const invalid of [null, {}, ["cooldown"], [null], Array(31).fill("working")]) {
+      ex.setTypes = invalid;
+      assert.ok(documentError(legacyDraft.document));
+      await assert.rejects(call("bbn_save_plan_draft", [legacyDraft.id, oldSave.revision, JSON.stringify(legacyDraft.document)]), /Set labels|Warm-up/);
+    }
+    ex.sets = "4";
+    ex.setTypes = ["warmup", "warmup", "working", "working"];
+    ex.overrides["5"] = { sets: "6", reps: "", weight: "" };
+    const saved = await call("bbn_save_plan_draft", [legacyDraft.id, oldSave.revision, JSON.stringify(legacyDraft.document)]);
+    assert.deepEqual((await call("bbn_open_plan_draft", [active.version_id])).document.days[0].blocks[0].exercises[0].setTypes, ex.setTypes);
+    const published = await call("bbn_apply_plan_draft", [legacyDraft.id, saved.revision, other]);
+    await as(other);
+    const four = await call("bbn_client_workout", [4, 1]);
+    assert.deepEqual(four.day.day_blocks[0].block_exercises[0].set_types, ex.setTypes);
+    const six = await call("bbn_client_workout", [5, 1]);
+    assert.deepEqual(six.day.day_blocks[0].block_exercises[0].set_types, [...ex.setTypes, "working", "working"]);
+    const started = await call("bbn_begin_workout", [four.day.id, four.assignmentId, 4]);
+    const newExercise = started.day.day_blocks[0].block_exercises[0];
+    await call("bbn_save_workout_sets", [started.id, JSON.stringify(ex.setTypes.map((_: string, i: number) => ({
+      block_exercise_id: newExercise.id, exercise_id: newExercise.exercise_id,
+      set_index: i, reps: [8,8,7,5][i], weight_lbs: [0,10,50,55][i],
+    }))), false]);
+    await as(coach);
+    const revised = await call("bbn_open_plan_draft", [published.versionId]);
+    assert.deepEqual(revised.document.days[0].blocks[0].exercises[0].setTypes, ex.setTypes);
+    revised.document.days[0].blocks[0].exercises[0].setTypes = ["working", "warmup", "working", "warmup"];
+    const copy = structuredClone(revised.document.days[0].blocks[0].exercises[0]);
+    copy.id = id(999);
+    revised.document.days[0].blocks[0].exercises.push(copy);
+    const next = await call("bbn_save_plan_draft", [revised.id, revised.revision, JSON.stringify(revised.document)]);
+    await call("bbn_apply_plan_draft", [revised.id, next.revision, other]);
+    await as(other);
+    const resumed = await call("bbn_client_workout", [4, 1]);
+    assert.equal(resumed.session.id, started.id);
+    assert.deepEqual(resumed.session.day, started.day, "An unfinished workout retains its original labels");
+    assert.deepEqual(resumed.session.entries.sort((a: any,b: any) => a.set_index-b.set_index).map((x: any) => [x.reps,x.weight_lbs]), [[8,0],[8,10],[7,50],[5,55]]);
+    assert.deepEqual((await call("bbn_client_workout", [1, 1])).session.day, originalSnapshot, "No labels are invented for pre-migration workouts");
+    const future = await call("bbn_client_workout", [6, 1]);
+    assert.deepEqual(future.day.day_blocks[0].block_exercises.map((e: any) => e.set_types), [copy.setTypes,copy.setTypes], "Custom labels and duplicated rows survive publication");
+    await as(coach);
+    const history = (await sql<{prescription_snapshot: unknown}>("select prescription_snapshot from workout_sessions where id=$1", [started.id]))[0];
+    assert.deepEqual(history.prescription_snapshot, started.day, "Coach history uses the same saved labels");
+    await db.exec("reset role;set role anon");
+    await assert.rejects(call("bbn_workout_snapshot", [four.day.id, 4]), /permission denied/);
+  });
+  await t.test("PDF import is atomic, private, idempotent and preserves exact weekly prescriptions", async () => {
+    await db.exec("reset role");
+    await db.exec(await readFile(new URL("../supabase/migrations/010_bbn_workout_pdf_import.sql",import.meta.url),"utf8"));
+    const source=validateImport(JSON.parse(await readFile(new URL("./fixtures/workout-import.json",import.meta.url),"utf8")));
+    const lib=[{id:exercise,name:"Goblet squat",youtube_url:null,cue:null},{id:exercise2,name:"Dumbbell row",youtube_url:null,cue:null}];
+    const doc=importDocument(source,initialMatches(source,lib),lib);
+    assert.equal(documentError(doc),null);
+    await as(client);
+    await assert.rejects(call("bbn_import_workout",[source.plan_id,1,"a".repeat(64),JSON.stringify(doc)]),/Coach/);
+    await as(coach);
+    const imported=await call("bbn_import_workout",[source.plan_id,1,"a".repeat(64),JSON.stringify(doc)]);
+    assert.equal(imported.state,"editing");
+    const retry=await call("bbn_import_workout",[source.plan_id,1,"a".repeat(64),JSON.stringify(doc)]);assert.equal(retry.versionId,imported.versionId);assert.equal(retry.reused,true);
+    await assert.rejects(call("bbn_import_workout",[source.plan_id,1,"b".repeat(64),JSON.stringify(doc)]),/different data/);
+    const draft=await call("bbn_open_plan_draft",[imported.versionId]);assert.deepEqual(draft.document,JSON.parse(JSON.stringify(doc)));
+    const before=(await sql("select id from program_assignments where client_id=$1 and active",[other]))[0];assert.ok(before);
+    const applied=await call("bbn_apply_plan_draft",[draft.id,draft.revision,other]);
+    const opened=await call("bbn_open_plan_draft",[applied.versionId]);assert.equal(opened.document.explicitWeeks,true);assert.match(opened.document.coachNotes[0].text,/PRIVATE_COACH_ONLY/);
+    assert.deepEqual(opened.document.days.map((d:any)=>d.week),[1,2]);assert.equal(documentError(opened.document),null);
+    await as(other);
+    assert.deepEqual(await sql("select * from program_coach_notes"),[]);assert.deepEqual(await sql("select * from workout_imports"),[]);
+    const first=await call("bbn_client_workout",[1,1]);const second=await call("bbn_client_workout",[2,1]);
+    assert.notEqual(first.day.id,second.day.id);assert.equal(first.day.title,"Strength foundations");assert.equal(second.day.title,"Upper body");
+    assert.equal(first.day.week_instructions,"Week one: learn the movements.");assert.equal(first.day.instructions,"Take your time today.");
+    assert.equal(first.day.day_blocks[0].block_exercises[0].set_targets[0].weight,"0");assert.equal(second.day.day_blocks[0].block_exercises[0].set_targets[0].weight,"");
+    assert.ok(!JSON.stringify(first).includes('PRIVATE_COACH_ONLY'));assert.ok(!JSON.stringify(second).includes('coachNotes'));
+    await assert.rejects(call("bbn_begin_workout",[first.day.id,first.assignmentId,2]),/different week/);
+    const begun=await call("bbn_begin_workout",[first.day.id,first.assignmentId,1]);
+    const x=begun.day.day_blocks[0].block_exercises[0];
+    await call("bbn_save_workout_sets",[begun.id,JSON.stringify([{block_exercise_id:x.id,exercise_id:x.exercise_id,set_index:0,reps:10,weight_lbs:0}]),false]);
+    await as(coach);
+    opened.document.days[0].blocks[0].exercises[0].setTargets[0].reps="12";
+    const saved=await call("bbn_save_plan_draft",[opened.id,opened.revision,JSON.stringify(opened.document)]);
+    await call("bbn_apply_plan_draft",[opened.id,saved.revision,other]);
+    await as(other);assert.equal((await call("bbn_client_workout",[1,1])).session.day.day_blocks[0].block_exercises[0].set_targets[0].reps,"10");
+    await db.exec("reset role;set role anon");await assert.rejects(call("bbn_import_workout",[source.plan_id,1,"a".repeat(64),JSON.stringify(doc)]),/permission denied/);
+  });
+
+  await t.test("Meal and combined imports preserve content, privacy, atomic copies and retries", async()=>{
+    await db.exec('reset role');
+    await db.exec(await readFile(new URL('./fixtures/meal-layout-schema.sql',import.meta.url),'utf8'));
+    await db.exec('grant select,insert,update,delete on meal_options to authenticated');
+    await db.exec(await readFile(new URL('../supabase/migrations/011_bbn_coaching_pdf_import.sql',import.meta.url),'utf8'));
+    const p=JSON.parse(await readFile(new URL('./fixtures/coaching-import.json',import.meta.url),'utf8'));
+    const lib=[{id:exercise,name:'Goblet squat',youtube_url:null,cue:null},{id:exercise2,name:'Dumbbell row',youtube_url:null,cue:null}];
+    const doc=importDocument(p.workout,initialMatches(p.workout,lib),lib);
+    const args=[id(810),1,'c'.repeat(64),JSON.stringify(doc),JSON.stringify(p.meal)];
+    await as(client);await assert.rejects(call('bbn_import_coaching',args),/Coach/);
+    await as(coach);
+    const before=await sql('select id from meal_plan_assignments where active order by id');
+    const r=await call('bbn_import_coaching',args);assert.ok(r.versionId);assert.ok(r.mealVersionId);
+    assert.deepEqual(await sql('select id from meal_plan_assignments where active order by id'),before);
+    assert.equal((await call('bbn_import_coaching',args)).mealVersionId,r.mealVersionId);
+    await assert.rejects(call('bbn_import_coaching',[id(810),1,'d'.repeat(64),JSON.stringify(doc),JSON.stringify(p.meal)]),/different data/);
+    const mealOnly=await call('bbn_import_coaching',[id(811),1,'e'.repeat(64),null,JSON.stringify(p.meal)]);assert.equal(mealOnly.versionId,null);
+    const v=(await sql('select intro,published_at from meal_plan_versions where id=$1',[r.mealVersionId]))[0];assert.equal(v.published_at,null);assert.match(v.intro as string,/Schedule: Repeat daily/);assert.ok(!JSON.stringify(v).includes('PRIVATE'));
+    const items=await sql('select i.name,i.portion,i.fats,i.calories from meal_items i join meals m on m.id=i.meal_id where m.version_id=$1 order by i.position',[r.mealVersionId]);assert.equal(items[0].portion,'40 g dry');assert.equal(items[0].calories,null);assert.equal(items[1].fats,'0');
+    const options=await sql('select o.text,o.tag from meal_options o join meals m on m.id=o.meal_id where m.version_id=$1 order by o.position',[r.mealVersionId]);assert.equal(options.length,2);assert.equal(options[1].tag,'zero_prep');
+    await as(client);assert.deepEqual(await sql('select * from meal_plan_coach_notes'),[]);assert.deepEqual(await sql('select * from coaching_imports'),[]);assert.deepEqual(await sql('select * from meal_plan_versions where id=$1',[r.mealVersionId]),[]);
+    await assert.rejects(call('bbn_assign_meal_copy',[r.mealVersionId,client]),/Coach/);
+    await as(coach);
+    const assigned=await call('bbn_assign_meal_copy',[r.mealVersionId,client]);assert.notEqual(assigned.versionId,r.mealVersionId);
+    assert.match(JSON.stringify(await sql('select notes from meal_plan_coach_notes where version_id=$1',[assigned.versionId])),/PRIVATE_MEAL_ONLY/);
+    await as(client);assert.equal((await sql('select * from meals where version_id=$1',[assigned.versionId])).length,2);assert.deepEqual(await sql('select * from meal_plan_coach_notes'),[]);
+    await as(coach);
+    const draft=await call('bbn_open_plan_draft',[r.versionId]);const published=await call('bbn_apply_plan_draft',[draft.id,draft.revision,null]);
+    const copied=await call('bbn_assign_program_copy',[published.versionId,client]);const copyDoc=(await call('bbn_open_plan_draft',[copied.versionId])).document;
+    assert.deepEqual(copyDoc.days.map((d:any)=>d.week),[1,2]);assert.deepEqual(copyDoc.days[0].blocks[0].exercises[0].setTargets,doc.days[0].blocks[0].exercises[0].setTargets);assert.match(copyDoc.coachNotes[0].text,/PRIVATE_COACH_ONLY/);
+    await assert.rejects(call('bbn_assign_program_copy',[r.versionId,client]),/Apply changes/);
+    // A failure after the workout was inserted rolls both components back.
+    await db.exec('reset role');
+    await db.exec("create function fail_import_meal() returns trigger language plpgsql as $$begin raise exception 'fixture late failure';end$$; create trigger fail_meal_import before insert on meal_options for each row execute function fail_import_meal();");
+    await as(coach);await assert.rejects(call('bbn_import_coaching',[id(812),1,'f'.repeat(64),JSON.stringify(doc),JSON.stringify(p.meal)]),/fixture late failure/);
+    assert.equal((await sql('select * from workout_imports where source_id=$1',[id(812)])).length,0);assert.equal((await sql('select * from coaching_imports where source_id=$1',[id(812)])).length,0);
+    const activeBefore=await sql('select version_id from meal_plan_assignments where client_id=$1 and active',[client]);
+    await assert.rejects(call('bbn_assign_meal_copy',[r.mealVersionId,client]),/fixture late failure/);assert.deepEqual(await sql('select version_id from meal_plan_assignments where client_id=$1 and active',[client]),activeBefore);
+    await db.exec('reset role;drop trigger fail_meal_import on meal_options;set role anon');await assert.rejects(call('bbn_import_coaching',args),/permission denied/);
+  });
   await db.close();
 });
 test("actual result and weekly target rules", () => {
@@ -782,4 +921,13 @@ test("actual result and weekly target rules", () => {
     ),
     { sets: "4", reps: "5–7", weight: "55" },
   );
+});
+
+test("set labels resolve new sets without guessing historical labels", () => {
+  assert.deepEqual(resolveSetTypes(["warmup", "warmup", "working"], 4), ["warmup", "warmup", "working", "working"]);
+  assert.deepEqual(resolveSetTypes(["warmup", "working", "warmup"], 2), ["warmup", "working"]);
+  assert.deepEqual(resolveSetTypes(undefined, 2), ["working", "working"]);
+  assert.equal(setHeading(0, ["warmup"]), "Set 1: Warm-up");
+  assert.equal(setHeading(1, ["warmup", "working"]), "Set 2: Working set");
+  assert.equal(setHeading(0), "Set 1");
 });

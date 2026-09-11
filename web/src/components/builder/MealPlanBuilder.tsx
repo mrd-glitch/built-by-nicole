@@ -166,7 +166,7 @@ export function MealPlanBuilder({ version, clients }: { version: Version; client
   async function onPublish(client: { id: string; full_name: string } | null) {
     setBusy(true);
     const res = client
-      ? await assignMealPlanCopy(version.id, client.id, client.full_name)
+      ? await assignMealPlanCopy(version.id, client.id)
       : await publishMealPlan(version.id);
     setBusy(false);
     if (res && "error" in res && res.error) return setError(res.error);

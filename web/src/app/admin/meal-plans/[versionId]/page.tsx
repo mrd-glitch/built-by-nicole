@@ -36,8 +36,44 @@ export default async function MealPlanBuilderPage({
 
   const ids = (roles ?? []).map((r) => r.user_id);
   const { data: clients } = ids.length
-    ? await supabase.from("profiles").select("id, full_name").in("id", ids).eq("status", "active")
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", ids)
+        .eq("status", "active")
     : { data: [] };
 
-  return <MealPlanBuilder version={JSON.parse(JSON.stringify(version))} clients={clients ?? []} />;
+  const { data: privateNotes, error: notesError } = await supabase
+    .from("meal_plan_coach_notes")
+    .select("notes")
+    .eq("version_id", versionId)
+    .maybeSingle();
+  return (
+    <>
+      {notesError ? (
+        <p role="alert">
+          Private notes could not be loaded. Reload before reviewing this plan.
+        </p>
+      ) : (
+        Array.isArray(privateNotes?.notes) &&
+        privateNotes.notes.length > 0 && (
+          <section className="card" style={{ marginBottom: 24 }}>
+            <h2>Private notes for Nicole</h2>
+            <p>These notes are never shown to the client.</p>
+            {privateNotes.notes.map(
+              (n: { meal: number | null; text: string }, i: number) => (
+                <p key={i}>
+                  {n.meal ? `Meal ${n.meal}` : "Plan"}: {n.text}
+                </p>
+              ),
+            )}
+          </section>
+        )
+      )}
+      <MealPlanBuilder
+        version={JSON.parse(JSON.stringify(version))}
+        clients={clients ?? []}
+      />
+    </>
+  );
 }

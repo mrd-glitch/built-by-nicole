@@ -1,9 +1,37 @@
+import type { CoachNote } from "./import/format";
+export type SetType = "warmup" | "working";
+export function setTypeLabel(type: SetType): string {
+  return type === "warmup" ? "Warm-up" : "Working set";
+}
+/** Missing labels in historical snapshots must remain unknown. */
+export function setHeading(index: number, types?: SetType[]): string {
+  const type = types?.[index];
+  return `Set ${index + 1}${type ? `: ${setTypeLabel(type)}` : ""}`;
+}
+export function resolveSetTypes(
+  types: SetType[] | undefined,
+  count: number,
+): SetType[] {
+  return Array.from(
+    { length: Math.max(0, Math.min(30, count || 0)) },
+    (_, i) => types?.[i] ?? "working",
+  );
+}
+
 export interface Prescription {
   sets: string;
   reps: string;
   weight: string;
 }
+export interface SetTarget {
+  reps: string;
+  weight: string;
+  rest: string;
+  instructions: string;
+}
 export interface PlanExercise extends Prescription {
+  setTargets?: SetTarget[];
+  setTypes?: SetType[];
   id: string;
   exerciseId: string;
   name: string;
@@ -19,11 +47,16 @@ export interface PlanBlock {
   exercises: PlanExercise[];
 }
 export interface PlanDay {
+  week?: number;
+  instructions?: string;
   id: string;
   title: string;
   blocks: PlanBlock[];
 }
 export interface PlanDocument {
+  explicitWeeks?: boolean;
+  weekNotes?: Record<string, string>;
+  coachNotes?: (CoachNote & { exerciseName?: string })[];
   name: string;
   description: string;
   weeks: string;
@@ -38,6 +71,8 @@ export interface LibraryExercise {
 }
 export interface BuilderVersion {
   id: string;
+  explicit_weeks?: boolean;
+  week_notes?: Record<string, string>;
   programs: {
     id: string;
     name: string;
@@ -56,6 +91,8 @@ export interface BuilderVersion {
     title: string;
     position: number;
     day: number;
+    week?: number;
+    instructions?: string;
     day_blocks: {
       id: string;
       label: string;
@@ -66,6 +103,8 @@ export interface BuilderVersion {
         exercise_id: string;
         exercise_name: string;
         sets: number;
+        set_types?: SetType[];
+        set_targets?: SetTarget[];
         rep_range: string;
         target_weight_lbs: number | null;
         optional: boolean;
@@ -89,7 +128,8 @@ export interface Draft {
   sourceAssignmentId: string | null;
 }
 export type Result<T> =
-  { data: T; error?: never } | { data?: never; error: string };
+  | { data: T; error?: never }
+  | { data?: never; error: string };
 export interface BuilderAPI {
   open(versionId: string): Promise<Result<Draft>>;
   save(
@@ -107,13 +147,22 @@ export interface BuilderAPI {
 export function documentFromVersion(v: BuilderVersion): PlanDocument {
   return {
     name: v.programs.name,
+    explicitWeeks: v.explicit_weeks ?? false,
+    weekNotes: v.week_notes ?? {},
     description: v.programs.description ?? "",
     weeks: String(v.programs.weeks),
     days: [...v.program_days]
-      .sort((a, b) => a.position - b.position || a.day - b.day)
+      .sort(
+        (a, b) =>
+          (a.week ?? 1) - (b.week ?? 1) ||
+          a.position - b.position ||
+          a.day - b.day,
+      )
       .map((d) => ({
         id: d.id,
         title: d.title,
+        week: d.week ?? 1,
+        instructions: d.instructions ?? "",
         blocks: [...d.day_blocks]
           .sort((a, b) => a.position - b.position)
           .map((b) => ({
@@ -127,6 +176,8 @@ export function documentFromVersion(v: BuilderVersion): PlanDocument {
                 exerciseId: e.exercise_id,
                 name: e.exercise_name,
                 sets: String(e.sets),
+                setTypes: e.set_types ?? [],
+                setTargets: e.set_targets?.length ? e.set_targets : undefined,
                 reps: e.rep_range,
                 weight:
                   e.target_weight_lbs == null
@@ -187,12 +238,52 @@ export function documentError(d: PlanDocument): string | null {
     return "Enter a plan name (up to 160 characters).";
   if (!/^\d+$/.test(d.weeks) || Number(d.weeks) < 1 || Number(d.weeks) > 52)
     return "Program length must be 1–52 weeks.";
-  if (d.description.length > 5000 || d.days.length < 1 || d.days.length > 14)
+  if (
+    d.description.length > 5000 ||
+    d.days.length < 1 ||
+    d.days.length > (d.explicitWeeks ? 728 : 14)
+  )
     return "Use 1–14 workout days and a description under 5,000 characters.";
+  if (d.explicitWeeks) {
+    for (let week = 1; week <= Number(d.weeks); week++) {
+      const count = d.days.filter((day) => day.week === week).length;
+      if (count < 1 || count > 14) return `Week ${week} needs 1–14 days.`;
+    }
+    if (
+      d.days.some(
+        (day) =>
+          !Number.isInteger(day.week) ||
+          day.week! < 1 ||
+          day.week! > Number(d.weeks),
+      )
+    )
+      return "Choose a valid week for each workout day.";
+  }
+  if (
+    Object.entries(d.weekNotes ?? {}).some(
+      ([week, note]) =>
+        !/^\d+$/.test(week) ||
+        Number(week) < 1 ||
+        Number(week) > Number(d.weeks) ||
+        typeof note !== "string" ||
+        note.length > 2000,
+    )
+  )
+    return "Week notes must use a valid week and stay under 2,000 characters.";
+  if (
+    (d.coachNotes?.length ?? 0) > 1000 ||
+    d.coachNotes?.some(
+      (n) =>
+        typeof n.text !== "string" || !n.text.trim() || n.text.length > 2000,
+    )
+  )
+    return "Private notes need text under 2,000 characters.";
   const ids = new Set<string>();
   for (const day of d.days) {
     if (!day.title.trim() || day.title.length > 160)
       return "Every day needs a name (up to 160 characters).";
+    if ((day.instructions?.length ?? 0) > 2000)
+      return "Day notes must be under 2,000 characters.";
     if (day.blocks.length > 100) return "Use no more than 100 blocks per day.";
     for (const block of day.blocks) {
       if (!block.exercises.length || block.exercises.length > 30)
@@ -204,6 +295,31 @@ export function documentError(d: PlanDocument): string | null {
           return "Each exercise needs a name and library selection.";
         if (e.instructions.length > 2000 || e.optionalNote.length > 2000)
           return "Exercise notes must be under 2,000 characters.";
+        if (
+          e.setTypes !== undefined &&
+          (!Array.isArray(e.setTypes) ||
+            e.setTypes.length > 30 ||
+            e.setTypes.some((type) => type !== "warmup" && type !== "working"))
+        )
+          return `${e.name}: Choose Warm-up or Working set for each set.`;
+        if (e.setTargets) {
+          if (e.setTargets.length !== Number(e.sets))
+            return `${e.name}: Each set needs its own target row.`;
+          for (const target of e.setTargets) {
+            const issue = prescriptionError({ ...target, sets: "1" });
+            if (issue) return `${e.name}: ${issue}`;
+            if (
+              target.rest !== "" &&
+              (!/^\d+$/.test(target.rest) || Number(target.rest) > 86400)
+            )
+              return `${e.name}: Rest must be 0–86400 seconds, or blank.`;
+            if (
+              typeof target.instructions !== "string" ||
+              target.instructions.length > 2000
+            )
+              return "Set notes must be under 2,000 characters.";
+          }
+        }
         const error = prescriptionError(e);
         if (error) return `${e.name}: ${error}`;
         for (const [week, p] of Object.entries(e.overrides)) {

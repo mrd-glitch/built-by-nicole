@@ -13,7 +13,12 @@ import {
   saveWorkoutSet,
   completeWorkout,
 } from "@/lib/plans/workout-actions";
-import { actualSetError } from "@/lib/plans/model";
+import {
+  actualSetError,
+  setHeading,
+  type SetType,
+  type SetTarget,
+} from "@/lib/plans/model";
 import type {
   SavedSet,
   WorkoutAPI,
@@ -27,6 +32,9 @@ export interface DayData {
   day: number;
   title: string;
   total_weeks?: number;
+  intro?: string;
+  week_instructions?: string;
+  instructions?: string;
   day_blocks: {
     id: string;
     label: string;
@@ -37,6 +45,8 @@ export interface DayData {
       exercise_id: string;
       exercise_name: string;
       sets: number;
+      set_types?: SetType[];
+      set_targets?: SetTarget[];
       rep_range: string;
       target_weight_lbs: number | null;
       optional: boolean;
@@ -394,6 +404,19 @@ export function WorkoutDay({
           </strong>
         </p>
       )}
+      {(day.intro || day.week_instructions || day.instructions) && (
+        <details className={styles.instructions} open>
+          <summary>Nicole’s notes for this workout</summary>
+          {day.intro && <p>{day.intro}</p>}
+          {day.week_instructions && (
+            <p>
+              <strong>Week {week}: </strong>
+              {day.week_instructions}
+            </p>
+          )}
+          {day.instructions && <p>{day.instructions}</p>}
+        </details>
+      )}
       {finished && (
         <p className={styles.complete} role="status">
           Workout completed · {doneSets} of {totalSets} sets logged. Saved
@@ -429,7 +452,9 @@ export function WorkoutDay({
 
             {block.block_exercises.map((be) => {
               const bodyweight =
-                be.target_weight_lbs === 0 && !weightedExercises[be.id];
+                (be.set_targets?.length
+                  ? be.set_targets.every((t) => t.weight === "0")
+                  : be.target_weight_lbs === 0) && !weightedExercises[be.id];
               const last = lastFor(be.exercise_id);
               const pb = bestFor(be.exercise_id);
               const yt = be.exercises?.youtube_url ?? null;
@@ -475,15 +500,27 @@ export function WorkoutDay({
                           )}
                         </p>
                         <p className={styles.prescription}>
-                          {be.sets} sets × {be.rep_range} reps
+                          {be.sets} sets
+                          {be.set_targets?.length
+                            ? " · Targets shown with each set"
+                            : ` × ${be.rep_range} reps`}
                           {block.rest_note ? ` · ${block.rest_note} rest` : ""}
                         </p>
-                        {be.target_weight_lbs != null && (
-                          <p className={styles.targetWeight}>
-                            Target weight: {be.target_weight_lbs} lb
-                            {be.target_weight_lbs === 0 ? " · Bodyweight" : ""}
-                          </p>
-                        )}
+                        {!be.set_targets?.length &&
+                          be.target_weight_lbs != null && (
+                            <p className={styles.targetWeight}>
+                              Target weight: {be.target_weight_lbs} lb
+                              {(
+                                be.set_targets?.length
+                                  ? be.set_targets.every(
+                                      (t) => t.weight === "0",
+                                    )
+                                  : be.target_weight_lbs === 0
+                              )
+                                ? " · Bodyweight"
+                                : ""}
+                            </p>
+                          )}
                         {(last || pb) && (
                           <p
                             className="metric mt-1"
@@ -584,7 +621,19 @@ export function WorkoutDay({
                           className={styles.setBox}
                           data-saved={!!log.saved}
                         >
-                          <legend>Set {si + 1}</legend>
+                          <legend>{setHeading(si, be.set_types)}</legend>
+                          {!!be.set_targets?.[si] && (
+                            <div className={styles.targetWeight}>
+                              Target: {be.set_targets[si].reps} reps
+                              {be.set_targets[si].weight !== "" &&
+                                ` · ${be.set_targets[si].weight} lb`}
+                              {be.set_targets[si].rest !== "" &&
+                                ` · ${be.set_targets[si].rest}s rest`}
+                              {be.set_targets[si].instructions && (
+                                <p>{be.set_targets[si].instructions}</p>
+                              )}
+                            </div>
+                          )}
                           <div
                             className={`${styles.setRow} ${bodyweight ? styles.repsOnly : ""}`}
                           >

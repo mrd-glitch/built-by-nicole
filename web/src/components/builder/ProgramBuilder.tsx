@@ -12,6 +12,7 @@ import {
   documentError,
   documentFromVersion,
   resolvePrescription,
+  resolveSetTypes,
   type BuilderAPI,
   type BuilderVersion,
   type Draft,
@@ -20,6 +21,7 @@ import {
   type PlanExercise,
 } from "@/lib/plans/model";
 import { WorkoutDay, type DayData } from "@/components/WorkoutDay";
+import { SetTypeEditor } from "@/components/plans/SetTypeEditor";
 import styles from "@/components/plans/plans.module.css";
 
 const liveAPI: BuilderAPI = {
@@ -62,6 +64,9 @@ export function ProgramBuilder({
   const problem = documentError(document);
   const dirty = JSON.stringify(document) !== savedDocument;
   const day = document.days[activeDay] ?? document.days[0];
+  const visibleDays = document.days
+    .map((d, i) => ({ d, i }))
+    .filter(({ d }) => !document.explicitWeeks || d.week === week);
   useEffect(() => {
     mounted.current = true;
     let cancelled = false;
@@ -175,8 +180,27 @@ export function ProgramBuilder({
     value: string,
   ) {
     exerciseEdit(id, (e) => {
-      if (week === 1) e[field] = value;
-      else {
+      if (week === 1 || latest.current.explicitWeeks) {
+        e[field] = value;
+        if (
+          field === "sets" &&
+          e.setTargets &&
+          /^\d+$/.test(value) &&
+          Number(value) >= 1 &&
+          Number(value) <= 30
+        ) {
+          e.setTargets = Array.from(
+            { length: Number(value) },
+            (_, i) =>
+              e.setTargets?.[i] ?? {
+                reps: e.reps,
+                weight: e.weight,
+                rest: "",
+                instructions: "",
+              },
+          );
+        }
+      } else {
         const o = e.overrides[String(week)] ?? {
           sets: "",
           reps: "",
@@ -374,6 +398,12 @@ export function ProgramBuilder({
             <input
               className="input"
               inputMode="numeric"
+              readOnly={document.explicitWeeks}
+              title={
+                document.explicitWeeks
+                  ? "This PDF includes an explicit weekly schedule. Import a new revision to change its length."
+                  : undefined
+              }
               value={document.weeks}
               onChange={(e) =>
                 edit((d) => {
@@ -401,7 +431,7 @@ export function ProgramBuilder({
         </details>
         <div className={styles.toolbar}>
           <div className={styles.days} aria-label="Workout days">
-            {document.days.map((d, i) => (
+            {visibleDays.map(({ d, i }) => (
               <button
                 key={d.id}
                 type="button"
@@ -417,7 +447,12 @@ export function ProgramBuilder({
             <select
               className="input"
               value={week}
-              onChange={(e) => setWeek(Number(e.target.value))}
+              onChange={(e) => {
+                const next = Number(e.target.value);
+                setWeek(next);
+                if (document.explicitWeeks)
+                  setActiveDay(document.days.findIndex((d) => d.week === next));
+              }}
             >
               {Array.from(
                 {
@@ -429,7 +464,7 @@ export function ProgramBuilder({
                 (_, i) => (
                   <option key={i} value={i + 1}>
                     {i + 1}
-                    {i === 0 ? " · Base plan" : ""}
+                    {i === 0 && !document.explicitWeeks ? " · Base plan" : ""}
                   </option>
                 ),
               )}
@@ -452,6 +487,7 @@ export function ProgramBuilder({
           <button
             className="btn btn--quiet btn--sm"
             type="button"
+            disabled={visibleDays.length >= 14}
             onClick={() =>
               edit((d) => {
                 const copy = structuredClone(d.days[activeDay]);
@@ -468,10 +504,65 @@ export function ProgramBuilder({
             Duplicate day
           </button>
         </div>
-        {week > 1 && (
+        <details className={styles.description}>
+          <summary>Week and day notes for the client</summary>
+          <label>
+            Week {week} notes
+            <textarea
+              className="input"
+              rows={2}
+              value={document.weekNotes?.[String(week)] ?? ""}
+              onChange={(e) =>
+                edit((d) => {
+                  d.weekNotes = {
+                    ...d.weekNotes,
+                    [String(week)]: e.target.value,
+                  };
+                })
+              }
+            />
+          </label>
+          <label>
+            Notes for {day.title}
+            <textarea
+              className="input"
+              rows={2}
+              value={day.instructions ?? ""}
+              onChange={(e) =>
+                edit((d) => {
+                  d.days[activeDay].instructions = e.target.value;
+                })
+              }
+            />
+          </label>
+        </details>
+        {!!document.coachNotes?.length && (
+          <details className={styles.privateNotes}>
+            <summary>Private notes for Nicole · never shown to clients</summary>
+            {document.coachNotes.map((n, i) => (
+              <label key={i}>
+                {n.scope}
+                {n.week ? ` · Week ${n.week}` : ""}
+                {n.day ? ` · Day ${n.day}` : ""}
+                {n.exerciseName ? ` · ${n.exerciseName}` : ""}
+                <textarea
+                  className="input"
+                  rows={2}
+                  value={n.text}
+                  onChange={(e) =>
+                    edit((d) => {
+                      d.coachNotes![i].text = e.target.value;
+                    })
+                  }
+                />
+              </label>
+            ))}
+          </details>
+        )}
+        {week > 1 && !document.explicitWeeks && (
           <p className={styles.hint}>
-            Blank weekly cells use the base plan. Names, instructions, and
-            exercise order apply to every week.
+            Blank weekly cells use the base plan. Names, instructions, and set
+            labels, and exercise order apply to every week.
           </p>
         )}
         <div className={styles.gridHeader} aria-hidden="true">
@@ -499,7 +590,7 @@ export function ProgramBuilder({
             )}
             {block.exercises.map((ex, ei) => {
               const p =
-                week === 1
+                week === 1 || document.explicitWeeks
                   ? ex
                   : (ex.overrides[String(week)] ?? {
                       sets: "",
@@ -540,7 +631,8 @@ export function ProgramBuilder({
                       <input
                         className="input"
                         aria-label={`${ex.name} reps`}
-                        value={p.reps}
+                        disabled={!!ex.setTargets}
+                        value={ex.setTargets ? "Per set" : p.reps}
                         placeholder={week > 1 ? ex.reps : undefined}
                         onChange={(e) =>
                           changePrescription(ex.id, "reps", e.target.value)
@@ -553,7 +645,8 @@ export function ProgramBuilder({
                         className="input"
                         aria-label={`${ex.name} target weight`}
                         inputMode="decimal"
-                        value={p.weight}
+                        disabled={!!ex.setTargets}
+                        value={ex.setTargets ? "Per set" : p.weight}
                         placeholder={week > 1 ? ex.weight : "Optional"}
                         onChange={(e) =>
                           changePrescription(ex.id, "weight", e.target.value)
@@ -575,6 +668,79 @@ export function ProgramBuilder({
                       />
                     </label>
                   </div>
+                  {!!ex.setTargets && (
+                    <details className={styles.description}>
+                      <summary>
+                        Individual set targets · {ex.setTargets.length} sets
+                      </summary>
+                      {ex.setTargets.map((target, si) => (
+                        <div key={si} className={styles.targetFields}>
+                          <label>
+                            Set {si + 1} target reps
+                            <input
+                              className="input"
+                              value={target.reps}
+                              onChange={(event) =>
+                                exerciseEdit(ex.id, (x) => {
+                                  x.setTargets![si].reps = event.target.value;
+                                })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Target lb
+                            <input
+                              className="input"
+                              inputMode="decimal"
+                              value={target.weight}
+                              onChange={(event) =>
+                                exerciseEdit(ex.id, (x) => {
+                                  x.setTargets![si].weight = event.target.value;
+                                })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Rest seconds
+                            <input
+                              className="input"
+                              inputMode="numeric"
+                              value={target.rest}
+                              onChange={(event) =>
+                                exerciseEdit(ex.id, (x) => {
+                                  x.setTargets![si].rest = event.target.value;
+                                })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Set {si + 1} instructions
+                            <textarea
+                              className="input"
+                              value={target.instructions}
+                              rows={1}
+                              onChange={(event) =>
+                                exerciseEdit(ex.id, (x) => {
+                                  x.setTargets![si].instructions =
+                                    event.target.value;
+                                })
+                              }
+                            />
+                          </label>
+                        </div>
+                      ))}
+                    </details>
+                  )}
+                  <SetTypeEditor
+                    name={ex.name}
+                    count={Number(resolvePrescription(ex, week).sets)}
+                    types={ex.setTypes}
+                    onChange={(types) =>
+                      exerciseEdit(ex.id, (x) => {
+                        x.setTypes = types;
+                      })
+                    }
+                  />
                   <div className={styles.rowActions}>
                     <button
                       type="button"
@@ -878,7 +1044,12 @@ export function toWorkoutDay(
   return {
     id: day.id,
     week,
-    day: index + 1,
+    day: doc.explicitWeeks
+      ? doc.days.filter((d, i) => d.week === week && i <= index).length
+      : index + 1,
+    intro: doc.description,
+    week_instructions: doc.weekNotes?.[String(week)] ?? "",
+    instructions: day.instructions ?? "",
     title: day.title,
     day_blocks: day.blocks.map((b, bi) => ({
       id: b.id,
@@ -893,6 +1064,8 @@ export function toWorkoutDay(
           exercise_id: e.exerciseId,
           exercise_name: e.name,
           sets: Number(p.sets),
+          set_types: resolveSetTypes(e.setTypes, Number(p.sets)),
+          set_targets: e.setTargets,
           rep_range: p.reps,
           target_weight_lbs: p.weight === "" ? null : Number(p.weight),
           optional: e.optional,

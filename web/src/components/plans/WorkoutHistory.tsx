@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { loadWorkoutHistory } from "@/lib/plans/workout-actions";
 import type { HistorySession } from "@/lib/plans/workout";
-import type { Result } from "@/lib/plans/model";
+import { setHeading, type Result } from "@/lib/plans/model";
 import styles from "./plans.module.css";
 export function WorkoutHistory({
   clientId,
@@ -106,8 +106,21 @@ export function WorkoutHistory({
                         );
                         return (
                           <tr key={i}>
-                            <td>{i + 1}</td>
-                            <td>{e.rep_range}</td>
+                            <td>{setHeading(i, e.set_types)}</td>
+                            <td>
+                              {e.set_targets?.[i]?.reps ?? e.rep_range}
+                              {!!e.set_targets?.[i] && (
+                                <div>
+                                  {e.set_targets[i].weight !== "" &&
+                                    `Target ${e.set_targets[i].weight} lb`}
+                                  {e.set_targets[i].rest !== "" &&
+                                    ` · Rest ${e.set_targets[i].rest}s`}
+                                  {e.set_targets[i].instructions && (
+                                    <p>{e.set_targets[i].instructions}</p>
+                                  )}
+                                </div>
+                              )}
+                            </td>
                             <td>{entry ? entry.weight_lbs : "Not logged"}</td>
                             <td>{entry ? entry.reps : "Not logged"}</td>
                           </tr>

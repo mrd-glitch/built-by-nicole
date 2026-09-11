@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getClientDetail, getDailyWeights, getSignedUrls } from "@/lib/data";
 import { AssignPlans } from "@/components/AssignPlans";
 import { ClientToggles } from "@/components/ClientToggles";
+import { AccountAccess } from "@/components/AccountAccess";
 import { ReplyBox } from "@/components/ReplyBox";
 import { MediaBubble } from "@/components/MessageMedia";
 import { ReopenCheckin } from "@/components/ReopenCheckin";
@@ -53,7 +54,7 @@ export default async function ClientDetail({
         <h1 style={{ fontSize: "var(--text-2xl)" }}>
           {profile.full_name || profile.email}
         </h1>
-        <span className="badge badge--green">{profile.status}</span>
+        <span className={`badge ${profile.status === "active" ? "badge--green" : "badge--grey"}`}>{profile.status}</span>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
@@ -234,6 +235,7 @@ export default async function ClientDetail({
         {/* Sidebar */}
         <aside className="grid content-start gap-4">
           <ClientToggles client={profile} />
+          <AccountAccess clientId={profile.id} email={profile.email} status={profile.status} />
           <section className="card">
             <h2 className="eyebrow">Weight</h2>
             <p className="metric mt-2" style={{ fontSize: "var(--text-lg)" }}>

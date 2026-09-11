@@ -174,7 +174,7 @@ export default async function NutritionPage() {
         </div>
       )}
       {version?.intro && (
-        <p className="mt-4" style={{ fontSize: "var(--text-base)", color: "var(--text-body)", lineHeight: "var(--leading-body)" }}>
+        <p className="mt-4" style={{ fontSize: "var(--text-base)", color: "var(--text-body)", lineHeight: "var(--leading-body)", whiteSpace: "pre-line" }}>
           {version.intro}
         </p>
       )}
@@ -234,8 +234,8 @@ export default async function NutritionPage() {
                     </div>
                     {showMacros && (
                       <span className="metric" style={{ fontSize: "var(--text-2xs)", color: "var(--grey-500)", whiteSpace: "nowrap" }}>
-                        P{item.protein ?? 0} C{item.carbs ?? 0} F{item.fats ?? 0}
-                        {showCalories && item.calories ? ` · ${item.calories}` : ""}
+                        P{item.protein ?? "—"} C{item.carbs ?? "—"} F{item.fats ?? "—"}
+                        {showCalories && item.calories !== null ? ` · ${item.calories}` : ""}
                       </span>
                     )}
                   </li>
